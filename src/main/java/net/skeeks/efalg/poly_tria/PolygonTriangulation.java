@@ -97,4 +97,18 @@ public class PolygonTriangulation {
 	public static void sweepLinePhase() {
 
 	}
+	
+	
+	/**
+	 * Returns true if the area of the polygon lies to the left of currV.
+	 * Caution: Can only be used for regular vertices
+	 */
+	public static boolean isAreaLeftOfVertex(Vertex currV, Vertex nextV, Vertex prevV) {
+		assert currV.type == VertexType.REGULAR;
+		if(prevV.y < currV.y || (prevV.y == currV.y && prevV.x > currV.x)) {
+			return true;
+		} else {
+			return false;
+		}
+	}
 }
