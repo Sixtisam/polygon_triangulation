@@ -45,7 +45,9 @@ public class PolygonTriangulationProgram {
 				.toArray(x -> new Polygon[x]);
 		System.out.println("Size after " + withoutHoles.length);
 		List<Edge> edges = new ArrayList<>();
+		long start = System.nanoTime();
 		List<Face> faces = PolygonTriangulation.triangulate(withoutHoles, edges);
+		System.out.println("Triangulation took " + ((System.nanoTime() - start) / 1_000_000) + "ms");
 		painter.setPolygons(withoutHoles);
 		painter.setFaces(faces.toArray(new Face[0]));
 		painter.setEdges(edges.toArray(new Edge[0]));

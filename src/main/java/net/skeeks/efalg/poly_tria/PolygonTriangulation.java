@@ -12,7 +12,7 @@ import java.util.List;
  */
 public class PolygonTriangulation {
 
-	public static List<Face> triangulate(Polygon[] polygons, List<Edge> edges) {
+	public static synchronized List<Face> triangulate(Polygon[] polygons, List<Edge> edges) {
 		ArrayList<Face> faces = new ArrayList<>();
 		// each polygon from the input is handled separately
 		for (Polygon polygon : polygons) {
@@ -58,8 +58,12 @@ public class PolygonTriangulation {
 
 	
 	public static void addTriangulationConnection(Vertex v1, Vertex v2, DCEL dcel, List<Edge> edges) {
-		edges.add(new Edge(v1, v2)); // dcel.insertEdge(curr, popped);
-//		dcel.insertEdge(v1, v2);
+//		edges.add(new Edge(v1, v2)); // dcel.insertEdge(curr, popped);
+		try {
+			dcel.insertEdge(v1, v2);
+		} catch(Throwable e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public static void triangulateMonotonePolygon(Face face, DCEL dcel, List<Edge> edges) {
@@ -76,15 +80,12 @@ public class PolygonTriangulation {
 		// Start at 3 vertex as for the first two, there is nothing to triangulate
 		for (int i = 2; i < vertices.length - 1; i++) {
 			Vertex curr = vertices[i];
-			System.out.println("Current 2-phase vertex: " + curr);
 			
 			if (stack.peek().chainType != curr.chainType) {
-				System.out.println("Different chains");
 				// Different chains -> Connect all vertices on stack (always possible)
 				
 				do {
 					Vertex popped = stack.pop();
-					System.out.println("Adding popped edge connection " + popped);
 					addTriangulationConnection(curr, popped, dcel, edges);
 				} while (stack.size() > 1);
 				stack.pop(); // last vertex on stack must be popped but not connected
@@ -92,7 +93,6 @@ public class PolygonTriangulation {
 				stack.push(vertices[i - 1]);
 				stack.push(curr);
 			} else {
-				System.out.println("Same chain");
 				// Same chain -> Connect to vertices on same chain until its not longer possible
 				Vertex prevPopped = stack.pop(); // already connected because on same chainw
 				Vertex popped = null;
@@ -124,6 +124,9 @@ public class PolygonTriangulation {
 		stack.pop();
 	}
 
+	/**
+	 * Return all vertices of the passed face
+	 */
 	public static Vertex[] getYMonotoneVertices(Face face) {
 		ArrayList<Vertex> tmpVertices = new ArrayList<>();
 
@@ -135,8 +138,8 @@ public class PolygonTriangulation {
 			Vertex prev = null;
 			do {
 				Vertex v = currEdge.from;
-				v.prev = prev; // must be overwritten
-				v.edge = currEdge; // must be overwritten
+				v.triangulationPrev = prev; // must be overwritten
+				v.triangulationEdge = currEdge; // must be overwritten
 				tmpVertices.add(v);
 				if (max == null || v.compareTo(max) < 0) {
 					max = v;
@@ -144,11 +147,11 @@ public class PolygonTriangulation {
 				prev = v;
 				currEdge = currEdge.next;
 			} while (currEdge != face.edge);
-			face.edge.from.prev = prev; // also set prev vertex of first vertex
-			face.edge.from.edge = face.edge; // must be overwritten
+			face.edge.from.triangulationPrev = prev; // also set prev vertex of first vertex
+			face.edge.from.triangulationEdge = face.edge; // must be overwritten
 			// integrity check
 			for (Vertex v : tmpVertices) {
-				assert v.prev != null;
+				assert v.triangulationPrev != null;
 			}
 		}
 
@@ -159,20 +162,20 @@ public class PolygonTriangulation {
 		vertices[0] = max;
 
 		// traverse all other vertices
-		Vertex currNext = max.next();
-		Vertex currPrev = max.prev;
+		Vertex currNext = max.triangulationNext();
+		Vertex currPrev = max.triangulationPrev;
 		int i = 1;
 		while (currNext != currPrev) {
 			if (currNext.compareTo(currPrev) < 0) {
 				// currNext is higher
 				currNext.chainType = ChainType.LEFT;
 				vertices[i++] = currNext;
-				currNext = currNext.next();
+				currNext = currNext.triangulationNext();
 			} else {
 				// currPrev is higher
 				currPrev.chainType = ChainType.RIGHT;
 				vertices[i++] = currPrev;
-				currPrev = currPrev.prev;
+				currPrev = currPrev.triangulationPrev;
 			}
 			assert vertices[i - 2].compareTo(vertices[i - 1]) < 0;
 		}
@@ -212,9 +215,6 @@ public class PolygonTriangulation {
 		if (!isAreaLeftOfVertex(event)) {
 			// connect if its a merge vertex
 			HalfEdge prevEdge = event.previousEdge();
-			if (prevEdge.helper == null) {
-				System.out.println("NULL: " + prevEdge);
-			}
 			assert prevEdge.helper != null;
 			assert prevEdge.helper.type != null;
 			if (prevEdge.helper.type == VertexType.MERGE) {

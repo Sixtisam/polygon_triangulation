@@ -206,16 +206,20 @@ public class GeometryPainter {
 				p.addPoint(curr.from.x, -curr.from.y);
 				curr = curr.next;
 			} while (curr != face.edge);
-			g.drawPolygon(p);
+			g.fillPolygon(p);
 		}
 	}
 
+	private final JLabel helpLabel = new JLabel("");
+	public void setHelpText(String text) {
+		helpLabel.setText(text);
+	}
+	
 	public class ControlPanel extends JPanel implements MouseMotionListener {
 		private static final long serialVersionUID = 1L;
 
 		private final JLabel xLabel = new JLabel("X");
 		private final JLabel yLabel = new JLabel("Y");
-		private final JLabel helpLabel = new JLabel("");
 
 		public void init() {
 			setBackground(Color.LIGHT_GRAY);
@@ -225,9 +229,7 @@ public class GeometryPainter {
 			add(helpLabel);
 		}
 
-		public void setHelpText(String text) {
-			helpLabel.setText(text);
-		}
+
 
 		/**
 		 * Called on mouse move on canvas

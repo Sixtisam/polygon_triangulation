@@ -22,6 +22,17 @@ public class Vertex implements Comparable<Vertex> {
 	 */
 	public ChainType chainType;
 	
+	/**
+	 * prev vertex, used only for the triangulation process.
+	 * Cannot used 'prev' because if the vertices are reused (like in InteractiveTriangulationProgram) the triangulation and make-monotone will interfere
+	 */
+	public Vertex triangulationPrev;
+	/**
+	 * next edge, used only for the triangulation process.
+	 * Cannot used 'prev' because if the vertices are reused (like in InteractiveTriangulationProgram) the triangulation and make-monotone will interfere
+	 */
+	public HalfEdge triangulationEdge;
+	
 	public Vertex(int x, int y) {
 		super();
 		this.x = x;
@@ -31,8 +42,8 @@ public class Vertex implements Comparable<Vertex> {
 	/**
 	 * Returns the next vertex (counter-clockwise order)
 	 */
-	public Vertex next() {
-		return edge.to();
+	public Vertex triangulationNext() {
+		return triangulationEdge.to();
 	}
 	
 	public HalfEdge previousEdge() {

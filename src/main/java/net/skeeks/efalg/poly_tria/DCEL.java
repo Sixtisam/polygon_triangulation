@@ -67,26 +67,28 @@ public class DCEL {
 	 */
 	public HalfEdge[] getPreviousVerticesWithCommonFace(Vertex v1, Vertex v2) {
 
-		if (v1.edge.face == v2.edge.face) {
-			// Find previous edge for v2
-			HalfEdge v2PrevCandidate = v2.previousEdge();
-			while (v2PrevCandidate != v2.edge.twin && v2PrevCandidate.face != v1.edge.face) {
-				v2PrevCandidate = v2PrevCandidate.next.twin;
-			}
-			
-			// Find previous edge for v1
-			HalfEdge v1PrevCandidate = v1.previousEdge();
-			while (v1PrevCandidate != v2.edge.twin && v2PrevCandidate.face != v1.edge.face) {
-				v1PrevCandidate = v1PrevCandidate.next.twin;
-			}
-			if(v1.edge.face != v2PrevCandidate.face || v2.edge.face == v1PrevCandidate.face) {
-				System.out.println(v1.edge.face + " <-> " + v2PrevCandidate.face);
-				System.out.println(v2.edge.face + " <-> " + v1PrevCandidate.face);
-			}
-			assert v1.edge.face == v2PrevCandidate.face;
-			assert v2.edge.face == v1PrevCandidate.face;
-			return new HalfEdge[] { v1PrevCandidate, v2PrevCandidate };
-		}
+		// TODO ske check if this is necessary
+//		if (v1.edge.face == v2.edge.face) {
+//			// Find previous edge for v2
+//			HalfEdge v2PrevCandidate = v2.previousEdge();
+//			while (v2PrevCandidate != v2.edge.twin && v2PrevCandidate.face != v1.edge.face) {
+//				v2PrevCandidate = v2PrevCandidate.next.twin;
+//			}
+//			
+//			// Find previous edge for v1
+//			HalfEdge v1PrevCandidate = v1.previousEdge();
+//			while (v1PrevCandidate != v2.edge.twin && v2PrevCandidate.face != v1.edge.face) {
+//				v1PrevCandidate = v1PrevCandidate.next.twin;
+//			}
+//			if(v1.edge.face != v2PrevCandidate.face || v2.edge.face != v1PrevCandidate.face) {
+//				System.out.println("Trying to insert edge " + v1 + " -> " + v2);
+//				System.out.println(v1.edge.face + " <-> " + v2PrevCandidate.face);
+//				System.out.println(v2.edge.face + " <-> " + v1PrevCandidate.face);
+//			}
+//			assert v1.edge.face == v2PrevCandidate.face;
+//			assert v2.edge.face == v1PrevCandidate.face;
+//			return new HalfEdge[] { v1PrevCandidate, v2PrevCandidate };
+//		}
 
 		HalfEdge v1PrevCandidate = v1.previousEdge();
 		do {
