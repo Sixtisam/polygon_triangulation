@@ -3,6 +3,7 @@ package net.skeeks.efalg.poly_tria;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -43,9 +44,11 @@ public class PolygonTriangulationProgram {
 		Polygon[] withoutHoles = Arrays.stream(polygons).filter(p -> !PolygonTriangulation.isClockwise(p))
 				.toArray(x -> new Polygon[x]);
 		System.out.println("Size after " + withoutHoles.length);
-		List<Edge> connections = PolygonTriangulation.triangulate(withoutHoles);
+		List<Edge> edges = new ArrayList<>();
+		List<Face> faces = PolygonTriangulation.triangulate(withoutHoles, edges);
 		painter.setPolygons(withoutHoles);
-		painter.setEdges(connections.toArray(new Edge[0]));
+		painter.setFaces(faces.toArray(new Face[0]));
+		painter.setEdges(edges.toArray(new Edge[0]));
 		painter.setPoints(Arrays.stream(withoutHoles).flatMap(polygon -> Arrays.stream(polygon.points))
 				.toArray(x -> new Vertex[x]));
 		painter.start();

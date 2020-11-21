@@ -6,9 +6,11 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.util.Map;
 import java.util.function.BiConsumer;
 
 import javax.swing.BorderFactory;
@@ -61,6 +63,13 @@ public class GeometryPainter {
 	public void setPolygons(Polygon[] polygons) {
 		SwingUtilities.invokeLater(() -> {
 			canvas.polygons = polygons;
+			canvas.repaint();
+		});
+	}
+
+	public void setFaces(Face[] faces) {
+		SwingUtilities.invokeLater(() -> {
+			canvas.faces = faces;
 			canvas.repaint();
 		});
 	}
@@ -142,13 +151,15 @@ public class GeometryPainter {
 		private static final long serialVersionUID = 1L;
 
 		public volatile Polygon[] polygons = new Polygon[0];
-		public volatile Edge[] edges = new Edge[0];
+		public volatile Face[] faces = new Face[0];
 		public volatile Vertex[] points = new Vertex[0];
+		public volatile Edge[] edges = new Edge[0];
 
 		@Override
 		public void paint(Graphics g) {
 			super.paint(g);
 			Graphics2D graphic2d = (Graphics2D) g;
+			graphic2d.addRenderingHints(Map.of(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON));
 			graphic2d.setColor(Color.BLUE);
 			graphic2d.translate(BORDER, getHeight() - BORDER);
 			graphic2d.scale(SCALE, SCALE);
@@ -165,9 +176,14 @@ public class GeometryPainter {
 				graphic2d.drawPolygon(xPoints, yPoints, xPoints.length);
 			}
 
-			graphic2d.setColor(Color.YELLOW);
+			for (Face face : faces) {
+				drawFace(face, graphic2d);
+			}
+
+			Color c = new Color(0xa59d0191, true);
+			graphic2d.setColor(c);
 			for (Edge edge : edges) {
-				graphic2d.drawLine(edge.start.x, -edge.start.y, edge.end.x, -edge.end.y);
+				graphic2d.drawLine(edge.from.x, -edge.from.y, edge.to.x, -edge.to.y);
 			}
 
 			graphic2d.setColor(Color.RED);
@@ -180,6 +196,17 @@ public class GeometryPainter {
 				graphic2d.drawLine(point.x - 3, -point.y, point.x + 3, -(point.y));
 			}
 
+		}
+
+		private void drawFace(Face face, Graphics g) {
+			java.awt.Polygon p = new java.awt.Polygon();
+			HalfEdge curr = face.edge;
+			g.setColor(face.color);
+			do {
+				p.addPoint(curr.from.x, -curr.from.y);
+				curr = curr.next;
+			} while (curr != face.edge);
+			g.drawPolygon(p);
 		}
 	}
 

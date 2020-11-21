@@ -6,30 +6,30 @@ public class EdgeSearchTree {
 	/**
 	 * The edges sorted by x-coordinates.
 	 */
-	private TreeSet<Edge> sortedEdges = new TreeSet<Edge>(this::edgeComparator);
+	private TreeSet<HalfEdge> sortedEdges = new TreeSet<HalfEdge>(this::edgeComparator);
 
 	/**
 	 * Whenever a new edge is inserted
 	 */
 	public int currentY;
 
-	public void insert(Edge edge) {
+	public void insert(HalfEdge edge) {
 		sortedEdges.add(edge);
 	}
 
-	public void remove(Edge edge) {
+	public void remove(HalfEdge edge) {
 		sortedEdges.remove(edge);
 	}
 
-	public static final Edge.SearchEdge SEARCH_EDGE = new Edge.SearchEdge();
+	public static final HalfEdge.SearchEdge SEARCH_EDGE = new HalfEdge.SearchEdge();
 
-	public Edge findToLeft(Vertex vertex) {
+	public HalfEdge findToLeft(Vertex vertex) {
 		SEARCH_EDGE.x = vertex.x;
 
 		return sortedEdges.floor(SEARCH_EDGE);
 	}
 
-	public int edgeComparator(Edge a, Edge b) {
+	public int edgeComparator(HalfEdge a, HalfEdge b) {
 		if (a == b)
 			return 0;
 
@@ -39,17 +39,5 @@ public class EdgeSearchTree {
 //		System.out.println(b + " intersecty y=" + currentY +" at x=" + bX);
 
 		return aX < bX ? -1 : 1;
-	}
-
-	public static void main(String[] args) {
-		EdgeSearchTree tree = new EdgeSearchTree();
-		tree.currentY = 11;
-		tree.insert(new Edge(new Vertex(7, 11), new Vertex(1, 2)));
-		tree.currentY = 8;
-		tree.insert(new Edge(new Vertex(7, 8), new Vertex(3, 2)));
-		tree.currentY = 5;
-		tree.insert(new Edge(new Vertex(9, 5), new Vertex(5, 1)));
-		tree.currentY = 4;
-		System.out.println(tree.findToLeft(new Vertex(10, 4)));
 	}
 }
