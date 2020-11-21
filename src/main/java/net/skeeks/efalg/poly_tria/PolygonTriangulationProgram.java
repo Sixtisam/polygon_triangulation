@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 
 public class PolygonTriangulationProgram {
 
@@ -36,14 +37,17 @@ public class PolygonTriangulationProgram {
 			polygons[i] = readPolygon();
 		}
 
-
 		GeometryPainter painter = new GeometryPainter();
 
-		Polygon[] withoutHoles = Arrays.stream(polygons).filter(p -> !PolygonTriangulation.isClockwise(p)).toArray(x -> new Polygon[x]);
-		PolygonTriangulation.triangulate(withoutHoles);
+		System.out.println("Size before " + polygons.length);
+		Polygon[] withoutHoles = Arrays.stream(polygons).filter(p -> !PolygonTriangulation.isClockwise(p))
+				.toArray(x -> new Polygon[x]);
+		System.out.println("Size after " + withoutHoles.length);
+		List<Edge> connections = PolygonTriangulation.triangulate(withoutHoles);
 		painter.setPolygons(withoutHoles);
-		painter.setPoints(
-				Arrays.stream(withoutHoles).flatMap(polygon -> Arrays.stream(polygon.points)).toArray(x -> new Vertex[x]));
+		painter.setEdges(connections.toArray(new Edge[0]));
+		painter.setPoints(Arrays.stream(withoutHoles).flatMap(polygon -> Arrays.stream(polygon.points))
+				.toArray(x -> new Vertex[x]));
 		painter.start();
 	}
 
