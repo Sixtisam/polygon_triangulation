@@ -164,11 +164,14 @@ public class GeometryPainter {
 			graphic2d.translate(BORDER, getHeight() - BORDER);
 			graphic2d.scale(SCALE, SCALE);
 
+			for (Face face : faces) {
+				drawFace(face, graphic2d);
+			}
 			for (Polygon polygon : polygons) {
-				int[] xPoints = new int[polygon.points.length];
-				int[] yPoints = new int[polygon.points.length];
+				int[] xPoints = new int[polygon.vertices.length];
+				int[] yPoints = new int[polygon.vertices.length];
 				int i = 0;
-				for (Vertex v : polygon.points) {
+				for (Vertex v : polygon.vertices) {
 					xPoints[i] = v.x;
 					yPoints[i] = -v.y;
 					i++;
@@ -176,9 +179,6 @@ public class GeometryPainter {
 				graphic2d.drawPolygon(xPoints, yPoints, xPoints.length);
 			}
 
-			for (Face face : faces) {
-				drawFace(face, graphic2d);
-			}
 
 			Color c = new Color(0xa59d0191, true);
 			graphic2d.setColor(c);

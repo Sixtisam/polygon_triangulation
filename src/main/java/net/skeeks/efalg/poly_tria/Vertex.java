@@ -7,6 +7,11 @@ public class Vertex implements Comparable<Vertex> {
 	 * Event type of this vertex
 	 */
 	public VertexType type;
+	
+	/**
+	 * True if this vertex forms a hole
+	 */
+	public boolean hole = false;
 	/**
 	 * Previous vertex according to original polygon
 	 */
@@ -54,7 +59,7 @@ public class Vertex implements Comparable<Vertex> {
 
 	@Override
 	public String toString() {
-		return "[" + x + "/" + y + "]";
+		return "[" + x + "/" + y + "] " + type;
 	}
 	
 	

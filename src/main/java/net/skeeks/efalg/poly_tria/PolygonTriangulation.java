@@ -2,8 +2,10 @@ package net.skeeks.efalg.poly_tria;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 
@@ -12,7 +14,10 @@ import java.util.List;
  */
 public class PolygonTriangulation {
 
-	public static synchronized List<Face> triangulate(Polygon[] polygons, List<Edge> edges) {
+	public static List<Face> triangulate(List<Polygon> polygons, List<Polygon> holes) {
+
+		mapHolesToPolygons(polygons, holes);
+
 		ArrayList<Face> faces = new ArrayList<>();
 		// each polygon from the input is handled separately
 		for (Polygon polygon : polygons) {
@@ -42,30 +47,59 @@ public class PolygonTriangulation {
 					case END:
 						handleEndVertex(currentEvent, sls);
 						break;
+					default:
+						throw new RuntimeException("should not happen");
 					}
 				}
 			}
+
 			// -----------------------------------------------------
 			// 2. Triangulate those y-monotone polygons
 			// -----------------------------------------------------
+
 			for (int i = 0; i < sls.dcel.faces.size(); i++) {
-				triangulateMonotonePolygon(sls.dcel.faces.get(i), sls.dcel, edges);
+				triangulateMonotonePolygon(sls.dcel.faces.get(i), sls.dcel, Collections.emptyList());
 			}
+			
+			for(HalfEdge e : sls.dcel.edges) {
+				for(HalfEdge e2 : sls.dcel.edges) {
+					if(e != e2 && (e.from == e2.from && e.twin == e2.twin)) {
+						System.out.println("FOUND DUPLICATE EDGE");
+					}
+				}
+			}
+			System.out.println("face count " + sls.dcel.faces.size());
+			Collections.reverse(sls.dcel.faces);
 			faces.addAll(sls.dcel.faces);
 		}
 		return faces;
 	}
 
-	
+	/**
+	 * Each hole must be inside a polygon. This method finds that polygon and
+	 * assigns that hole to that polygon.
+	 */
+	public static void mapHolesToPolygons(List<Polygon> polygons, List<Polygon> holes) {
+		for (Polygon hole : holes) {
+			for (Polygon polygon : polygons) {
+				if (polygon.contains(hole)) {
+					System.out.println("contains the hole");
+					polygon.addHole(hole);
+					break;
+				}
+			}
+		}
+	}
+
 	public static void addTriangulationConnection(Vertex v1, Vertex v2, DCEL dcel, List<Edge> edges) {
 //		edges.add(new Edge(v1, v2)); // dcel.insertEdge(curr, popped);
 		try {
 			dcel.insertEdge(v1, v2);
-		} catch(Throwable e) {
+		} catch (Throwable e) {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public static void triangulateMonotonePolygon(Face face, DCEL dcel, List<Edge> edges) {
 		Vertex[] vertices = getYMonotoneVertices(face);
 		assert vertices.length >= 3;
@@ -80,10 +114,10 @@ public class PolygonTriangulation {
 		// Start at 3 vertex as for the first two, there is nothing to triangulate
 		for (int i = 2; i < vertices.length - 1; i++) {
 			Vertex curr = vertices[i];
-			
+
 			if (stack.peek().chainType != curr.chainType) {
 				// Different chains -> Connect all vertices on stack (always possible)
-				
+
 				do {
 					Vertex popped = stack.pop();
 					addTriangulationConnection(curr, popped, dcel, edges);
@@ -208,10 +242,12 @@ public class PolygonTriangulation {
 		// add edge to next vertex into tree
 		sls.edgeTree.currentY = event.y;
 		event.edge.helper = event;
+		System.out.println("START: " + event + " inserting " + event.edge);
 		sls.edgeTree.insert(event.edge);
 	}
 
 	public static void handleRegularVertex(Vertex event, MakeMonotoneSweepLineStatus sls) {
+		System.out.println(event + ": Lies to the left? " + isAreaLeftOfVertex(event));
 		if (!isAreaLeftOfVertex(event)) {
 			// connect if its a merge vertex
 			HalfEdge prevEdge = event.previousEdge();
@@ -254,6 +290,7 @@ public class PolygonTriangulation {
 	public static void handleMergeVertex(Vertex event, MakeMonotoneSweepLineStatus sls) {
 		// make diagonal to helper of prev edge if its a merge vertex
 		HalfEdge prevEdge = event.previousEdge();
+		System.out.println("MERGE: " + event + " Search helper of " + prevEdge.helper);
 		if (prevEdge.helper.type == VertexType.MERGE) {
 			sls.dcel.insertEdge(event, prevEdge.helper);
 		}
@@ -278,21 +315,6 @@ public class PolygonTriangulation {
 		sls.edgeTree.currentY = event.y;
 		// remove edge from tree as this edge is now finished
 		sls.edgeTree.remove(prevEdge);
-	}
-
-	public static boolean isClockwise(Polygon polygon) {
-		long sum = 0;
-		Vertex currP, nextP;
-		for (int i = 0; i < polygon.points.length; i++) {
-			currP = polygon.points[i];
-			// vector product
-			nextP = polygon.points[(i + 1) % polygon.points.length];
-			sum += (nextP.x - currP.x) * (nextP.y + currP.y);
-		}
-
-		System.out.println(polygon.toString() + " is clockwise: " + sum + " " + (sum > 0));
-		return sum > 0;
-
 	}
 
 	/**

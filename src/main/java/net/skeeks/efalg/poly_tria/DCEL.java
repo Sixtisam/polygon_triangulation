@@ -55,10 +55,20 @@ public class DCEL {
 		// update face of the new halved polygon
 		newFace.edge = newTwinEdge;
 		HalfEdge currEdge = newTwinEdge;
+		Face sameFace = null;
 		do {
+			if(currEdge == newEdge) {
+				System.out.println("same face");
+				sameFace = newEdge.face;
+			}
 			currEdge.face = newFace;
 			currEdge = currEdge.next;
 		} while (currEdge != newTwinEdge);
+
+		if(sameFace != null) {
+			faces.remove(sameFace);
+		}
+		System.out.println("adding new face " + newFace);
 	}
 
 	/**
@@ -102,6 +112,8 @@ public class DCEL {
 			v1PrevCandidate = v1PrevCandidate.next.twin;
 		} while (v1PrevCandidate != v1.edge.twin);
 
+		System.out.println(v1 + " |||||||| " + v2);
+		
 		throw new RuntimeException("No common face found!");
 	}
 

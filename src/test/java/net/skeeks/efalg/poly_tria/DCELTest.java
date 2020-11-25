@@ -17,7 +17,7 @@ public class DCELTest {
 		MakeMonotoneSweepLineStatus sls = new MakeMonotoneSweepLineStatus();
 		sls.init(p);
 
-		sls.dcel.insertEdge(p.points[1], p.points[3]);
+		sls.dcel.insertEdge(p.vertices[1], p.vertices[3]);
 		System.out.println(sls.dcel.faces.get(0));
 		System.out.println(sls.dcel.faces.get(1));
 	}
@@ -30,9 +30,9 @@ public class DCELTest {
 		MakeMonotoneSweepLineStatus sls = new MakeMonotoneSweepLineStatus();
 		sls.init(p);
 
-		sls.dcel.insertEdge(p.points[1], p.points[4]);
-		System.out.println("Calcualted Prev edges " + Arrays.toString(sls.dcel.getPreviousVerticesWithCommonFace(p.points[2], p.points[4])));
-		sls.dcel.insertEdge(p.points[2], p.points[4]);
+		sls.dcel.insertEdge(p.vertices[1], p.vertices[4]);
+		System.out.println("Calcualted Prev edges " + Arrays.toString(sls.dcel.getPreviousVerticesWithCommonFace(p.vertices[2], p.vertices[4])));
+		sls.dcel.insertEdge(p.vertices[2], p.vertices[4]);
 		System.out.println("Results: -------- " + sls.dcel.faces.size());
 		System.out.println(sls.dcel.faces.get(0));
 		System.out.println(sls.dcel.faces.get(1));

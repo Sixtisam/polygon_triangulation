@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class PolygonTriangulationProgram {
 
@@ -33,25 +35,29 @@ public class PolygonTriangulationProgram {
 	public static void main(String[] args) throws IOException {
 		int polygonCount = Integer.parseInt(next());
 
-		Polygon[] polygons = new Polygon[polygonCount];
+		// read in all polygons
+		ArrayList<Polygon> polygons = new ArrayList<>();
+		ArrayList<Polygon> holes = new ArrayList<>();
 		for (int i = 0; i < polygonCount; i++) {
-			polygons[i] = readPolygon();
+			Polygon polygon = readPolygon();
+			if(polygon.isClockwise()) {
+				holes.add(polygon);
+			} else {
+				polygons.add(polygon);
+			}
 		}
 
-		GeometryPainter painter = new GeometryPainter();
-
-		System.out.println("Size before " + polygons.length);
-		Polygon[] withoutHoles = Arrays.stream(polygons).filter(p -> !PolygonTriangulation.isClockwise(p))
-				.toArray(x -> new Polygon[x]);
-		System.out.println("Size after " + withoutHoles.length);
-		List<Edge> edges = new ArrayList<>();
+		// Run the algorithm
 		long start = System.nanoTime();
-		List<Face> faces = PolygonTriangulation.triangulate(withoutHoles, edges);
+		List<Face> faces = PolygonTriangulation.triangulate(polygons, holes);
 		System.out.println("Triangulation took " + ((System.nanoTime() - start) / 1_000_000) + "ms");
-		painter.setPolygons(withoutHoles);
+		// Show visualization
+		GeometryPainter painter = new GeometryPainter();
+		painter.setPolygons(polygons.toArray(new Polygon[0]));
 		painter.setFaces(faces.toArray(new Face[0]));
-		painter.setEdges(edges.toArray(new Edge[0]));
-		painter.setPoints(Arrays.stream(withoutHoles).flatMap(polygon -> Arrays.stream(polygon.points))
+		painter.setPoints(polygons.stream()
+				.filter(Objects::nonNull)
+				.flatMap(polygon -> Arrays.stream(polygon.vertices))
 				.toArray(x -> new Vertex[x]));
 		painter.start();
 	}
