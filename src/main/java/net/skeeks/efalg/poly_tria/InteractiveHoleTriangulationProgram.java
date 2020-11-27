@@ -3,6 +3,7 @@ package net.skeeks.efalg.poly_tria;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class InteractiveHoleTriangulationProgram {
 
@@ -29,12 +30,14 @@ public class InteractiveHoleTriangulationProgram {
 				i++;
 			}
 			Polygon hole = new Polygon(copied);
+			List<Edge> edges = new ArrayList<>();
 			try {
 				List<Face> faces = PolygonTriangulation.triangulate(Collections.singletonList(p),
-						Collections.singletonList(hole));
-				painter.setFaces(faces.toArray(new Face[0]));
+						Collections.singletonList(hole), edges);
+//				painter.setFaces(faces.toArray(new Face[0]));
 				painter.setPolygons(new Polygon[] { p, hole });
 //				painter.setPolygons(new Polygon[] {p});
+				painter.setEdges(edges.toArray(new Edge[0]));
 				painter.setHelpText("Success");
 			} catch (Throwable t) {
 				t.printStackTrace();

@@ -43,6 +43,7 @@ public class DCEL {
 		newEdge.from = v1;
 		v1PreviousEdge.next = newEdge;
 		newEdge.face = v1PreviousEdge.face;
+		
 		newEdge.face.edge = newEdge;
 		assert v2PreviousEdge.face == v1PreviousEdge.face; // must be same face
 		assert v1PreviousEdge.face != null; // must not be the OUTER face
@@ -68,7 +69,7 @@ public class DCEL {
 		if(sameFace != null) {
 			faces.remove(sameFace);
 		}
-		System.out.println("adding new face " + newFace);
+		System.out.println("Setting edge on face" + v1PreviousEdge.face.color + " to " + newEdge);
 	}
 
 	/**
@@ -76,29 +77,6 @@ public class DCEL {
 	 * common face first.
 	 */
 	public HalfEdge[] getPreviousVerticesWithCommonFace(Vertex v1, Vertex v2) {
-
-		// TODO ske check if this is necessary
-//		if (v1.edge.face == v2.edge.face) {
-//			// Find previous edge for v2
-//			HalfEdge v2PrevCandidate = v2.previousEdge();
-//			while (v2PrevCandidate != v2.edge.twin && v2PrevCandidate.face != v1.edge.face) {
-//				v2PrevCandidate = v2PrevCandidate.next.twin;
-//			}
-//			
-//			// Find previous edge for v1
-//			HalfEdge v1PrevCandidate = v1.previousEdge();
-//			while (v1PrevCandidate != v2.edge.twin && v2PrevCandidate.face != v1.edge.face) {
-//				v1PrevCandidate = v1PrevCandidate.next.twin;
-//			}
-//			if(v1.edge.face != v2PrevCandidate.face || v2.edge.face != v1PrevCandidate.face) {
-//				System.out.println("Trying to insert edge " + v1 + " -> " + v2);
-//				System.out.println(v1.edge.face + " <-> " + v2PrevCandidate.face);
-//				System.out.println(v2.edge.face + " <-> " + v1PrevCandidate.face);
-//			}
-//			assert v1.edge.face == v2PrevCandidate.face;
-//			assert v2.edge.face == v1PrevCandidate.face;
-//			return new HalfEdge[] { v1PrevCandidate, v2PrevCandidate };
-//		}
 
 		HalfEdge v1PrevCandidate = v1.previousEdge();
 		do {
@@ -112,8 +90,6 @@ public class DCEL {
 			v1PrevCandidate = v1PrevCandidate.next.twin;
 		} while (v1PrevCandidate != v1.edge.twin);
 
-		System.out.println(v1 + " |||||||| " + v2);
-		
 		throw new RuntimeException("No common face found!");
 	}
 

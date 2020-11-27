@@ -49,7 +49,7 @@ public class PolygonTriangulationProgram {
 
 		// Run the algorithm
 		long start = System.nanoTime();
-		List<Face> faces = PolygonTriangulation.triangulate(polygons, holes);
+		List<Face> faces = PolygonTriangulation.triangulate(polygons, holes, new ArrayList<>());
 		System.out.println("Triangulation took " + ((System.nanoTime() - start) / 1_000_000) + "ms");
 		// Show visualization
 		GeometryPainter painter = new GeometryPainter();

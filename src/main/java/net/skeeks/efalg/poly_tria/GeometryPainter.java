@@ -36,7 +36,7 @@ public class GeometryPainter {
 			frame.getContentPane().setLayout(new BoxLayout(frame.getContentPane(), BoxLayout.Y_AXIS));
 			frame.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 			controlPanel.init();
-			canvas.setPreferredSize(new Dimension(1000, 950));
+			canvas.setPreferredSize(new Dimension(1900, 1100));
 			canvas.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 10));
 			canvas.addMouseMotionListener(controlPanel);
 			canvas.addMouseListener(consumerListener);
@@ -44,7 +44,7 @@ public class GeometryPainter {
 			frame.add(controlPanel);
 			frame.add(canvas);
 			// Display the window.
-			frame.setSize(1000, 1000);
+			frame.setSize(1900, 1100);
 			frame.setVisible(true);
 		});
 	}

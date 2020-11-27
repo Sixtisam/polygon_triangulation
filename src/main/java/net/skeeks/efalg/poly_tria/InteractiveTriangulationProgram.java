@@ -16,7 +16,7 @@ public class InteractiveTriangulationProgram {
 			Polygon p = new Polygon(vertices.toArray(new Vertex[0]));
 			try {
 				List<Face> faces = PolygonTriangulation.triangulate(Collections.singletonList(p),
-						Collections.emptyList());
+						Collections.emptyList(), new ArrayList<>());
 				painter.setFaces(faces.toArray(new Face[0]));
 				painter.setPolygons(new Polygon[0]);
 				painter.setHelpText("Success");
