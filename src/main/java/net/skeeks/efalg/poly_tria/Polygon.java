@@ -26,7 +26,6 @@ public class Polygon {
 		int CDy = RAND.nextInt(1000) + 50_000;
 		
 		Vertex otherVertex = other.vertices[RAND.nextInt(other.vertices.length)];
-		System.out.println("Chose " + otherVertex);
 		int intersections = 0;
 		Vertex prev = vertices[vertices.length - 1];
 		for(int i = 0; i < vertices.length; i++){

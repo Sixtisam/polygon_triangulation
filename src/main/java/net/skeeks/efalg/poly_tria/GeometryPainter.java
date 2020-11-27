@@ -10,6 +10,8 @@ import java.awt.RenderingHints;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
@@ -70,6 +72,13 @@ public class GeometryPainter {
 	public void setFaces(Face[] faces) {
 		SwingUtilities.invokeLater(() -> {
 			canvas.faces = faces;
+			canvas.repaint();
+		});
+	}
+	
+	public void setTriangels(List<Triangle> triangles) {
+		SwingUtilities.invokeLater(() -> {
+			canvas.triangles = triangles;
 			canvas.repaint();
 		});
 	}
@@ -154,6 +163,7 @@ public class GeometryPainter {
 		public volatile Face[] faces = new Face[0];
 		public volatile Vertex[] points = new Vertex[0];
 		public volatile Edge[] edges = new Edge[0];
+		public volatile List<Triangle> triangles = new ArrayList<>();
 
 		@Override
 		public void paint(Graphics g) {
@@ -195,7 +205,15 @@ public class GeometryPainter {
 				graphic2d.drawLine(point.x, -(point.y + 3), point.x, -(point.y - 3));
 				graphic2d.drawLine(point.x - 3, -point.y, point.x + 3, -(point.y));
 			}
+			
+			for(Triangle t : triangles) {
+				drawTriangle(t, graphic2d);
+			}
 
+		}
+		
+		private void drawTriangle(Triangle triangle, Graphics2D g) {
+			g.drawPolygon(new int[] {triangle.p1.x,  triangle.p2.x, triangle.p3.x}, new int[] {-triangle.p1.y, -triangle.p2.y, -triangle.p3.y}, 3);
 		}
 
 		private void drawFace(Face face, Graphics g) {

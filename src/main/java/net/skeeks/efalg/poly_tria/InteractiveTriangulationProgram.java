@@ -15,15 +15,15 @@ public class InteractiveTriangulationProgram {
 		Runnable refresh = () -> {
 			Polygon p = new Polygon(vertices.toArray(new Vertex[0]));
 			try {
-				List<Face> faces = PolygonTriangulation.triangulate(Collections.singletonList(p),
-						Collections.emptyList(), new ArrayList<>());
-				painter.setFaces(faces.toArray(new Face[0]));
+				List<Triangle> triangles = PolygonTriangulation.triangulate(Collections.singletonList(p),
+						Collections.emptyList());
+				painter.setTriangels(triangles);
 				painter.setPolygons(new Polygon[0]);
 				painter.setHelpText("Success");
 			} catch (Throwable t) {
 				t.printStackTrace();
 				painter.setPolygons(new Polygon[] { p });
-				painter.setFaces(new Face[0]);
+				painter.setTriangels(Collections.emptyList());
 				painter.setHelpText("Error occurred");
 			}
 		};

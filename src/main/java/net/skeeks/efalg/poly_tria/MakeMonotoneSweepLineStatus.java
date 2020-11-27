@@ -133,7 +133,6 @@ public class MakeMonotoneSweepLineStatus {
 			currV.hole = true;
 			// arguments MUST NOT be switched as they are already "switched"
 			splitOrMergeVerticesCount += categorizeVertex(currV, nextV, prevV);
-			System.out.println(currV);
 			
 			currV.edge = edge;
 			currV.prev = prevV;

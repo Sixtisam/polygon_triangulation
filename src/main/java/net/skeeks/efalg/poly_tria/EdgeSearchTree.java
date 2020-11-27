@@ -35,8 +35,6 @@ public class EdgeSearchTree {
 
 		double aX = a.calcIntersectionX(currentY);
 		double bX = b.calcIntersectionX(currentY);
-//		System.out.println(a + " intersecty y=" + currentY +" at x=" + aX);
-//		System.out.println(b + " intersecty y=" + currentY +" at x=" + bX);
 
 		return aX < bX ? -1 : 1;
 	}

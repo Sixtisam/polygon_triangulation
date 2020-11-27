@@ -3,7 +3,6 @@ package net.skeeks.efalg.poly_tria;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -15,18 +14,16 @@ import java.util.stream.Collectors;
  */
 public class PolygonTriangulation {
 
-	public static List<Face> triangulate(List<Polygon> polygons, List<Polygon> holes, List<Edge> edges) {
+	public static List<Triangle> triangulate(List<Polygon> polygons, List<Polygon> holes) {
 
 		mapHolesToPolygons(polygons, holes);
 
-		ArrayList<Face> faces = new ArrayList<>();
+		ArrayList<Triangle> triangles = new ArrayList<>();
 		// each polygon from the input is handled separately
 		for (Polygon polygon : polygons) {
 			// -----------------------------------------------------
 			// 1. Split the polygon up into monotone polygons
 			// -----------------------------------------------------
-			System.out.println("--------------------------");
-			System.out.println("Handling following polygon: " + polygon);
 			MakeMonotoneSweepLineStatus sls = new MakeMonotoneSweepLineStatus();
 			// Optimization: if the polygon has no split or merge vertices, we can skip
 			// making the polgony y-monotone because it is already y-monotone.
@@ -37,16 +34,16 @@ public class PolygonTriangulation {
 						handleStartVertex(currentEvent, sls);
 						break;
 					case REGULAR:
-						handleRegularVertex(currentEvent, sls, edges);
+						handleRegularVertex(currentEvent, sls);
 						break;
 					case MERGE:
-						handleMergeVertex(currentEvent, sls, edges);
+						handleMergeVertex(currentEvent, sls);
 						break;
 					case SPLIT:
-						handleSplitVertex(currentEvent, sls, edges);
+						handleSplitVertex(currentEvent, sls);
 						break;
 					case END:
-						handleEndVertex(currentEvent, sls, edges);
+						handleEndVertex(currentEvent, sls);
 						break;
 					default:
 						throw new RuntimeException("should not happen");
@@ -57,17 +54,12 @@ public class PolygonTriangulation {
 			// -----------------------------------------------------
 			// 2. Triangulate those y-monotone polygons
 			// -----------------------------------------------------
-			System.out.println("Faces");
-			System.out.println(sls.dcel.faces.stream().map(Face::toString).collect(Collectors.joining(System.lineSeparator())));
-			int yMonotoneFaces = sls.dcel.faces.size();
-			System.out.println("Size is "  + yMonotoneFaces);
-			for (int i = 0; i < yMonotoneFaces; i++) {
-				triangulateMonotonePolygon(sls.dcel.faces.get(i), sls.dcel, edges);
+			for (int i = 0; i < sls.dcel.faces.size(); i++) {
+				triangulateMonotonePolygon(sls.dcel.faces.get(i), sls.dcel, triangles);
 			}
 			
-			faces.addAll(sls.dcel.faces);
 		}
-		return faces;
+		return triangles;
 	}
 
 	/**
@@ -85,19 +77,18 @@ public class PolygonTriangulation {
 		}
 	}
 
-	public static void addTriangulationConnection(Vertex v1, Vertex v2, DCEL dcel, List<Edge> edges) {
-		edges.add(new Edge(v1, v2)); // dcel.insertEdge(curr, popped);
-		try {
-			dcel.insertEdge(v1, v2);
-		} catch (Throwable e) {
-			e.printStackTrace();
-		}
+	public static void addTriangulationConnection(Vertex v1, Vertex v2, Vertex v3, List<Triangle> triangles) {
+		assert v1 != null;
+		assert v2 != null;
+		assert v3 != null;
+		triangles.add(new Triangle(v1, v2, v3));
 	}
 
-	public static void triangulateMonotonePolygon(Face face, DCEL dcel, List<Edge> edges) {
+	public static void triangulateMonotonePolygon(Face face, DCEL dcel, List<Triangle> triangles) {
 		Vertex[] vertices = getYMonotoneVertices(face);
 		assert vertices.length >= 3;
 		if (vertices.length == 3) {
+			triangles.add(new Triangle(vertices[0], vertices[1], vertices[2]));
 			return; // triangles are already triangulated
 		}
 		assert vertices.length > 3; // just to be sure
@@ -112,11 +103,18 @@ public class PolygonTriangulation {
 			if (stack.peek().chainType != curr.chainType) {
 				// Different chains -> Connect all vertices on stack (always possible)
 
+				Vertex prevPopped = null;
 				do {
 					Vertex popped = stack.pop();
-					addTriangulationConnection(curr, popped, dcel, edges);
+					if(prevPopped != null) {
+						addTriangulationConnection(curr, popped, prevPopped, triangles);
+					}
+					prevPopped = popped;
 				} while (stack.size() > 1);
-				stack.pop(); // last vertex on stack must be popped but not connected
+				Vertex v1 = stack.pop(); // last vertex on stack must be popped but not connected
+				if(prevPopped != null) {
+					addTriangulationConnection(curr, v1, prevPopped, triangles);
+				}
 				assert i - 1 >= 1;
 				stack.push(vertices[i - 1]);
 				stack.push(curr);
@@ -128,7 +126,7 @@ public class PolygonTriangulation {
 					popped = stack.pop();
 					// only draw connections while they are inside the polygon
 					if (connectionLiesInside(curr, prevPopped, popped)) {
-						addTriangulationConnection(curr, popped, dcel, edges);
+						addTriangulationConnection(curr, popped, prevPopped, triangles);
 						// dcel.insertEdge(curr, popped);
 						prevPopped = popped;
 					} else {
@@ -144,12 +142,14 @@ public class PolygonTriangulation {
 
 		// Pop all remaining vertices from stack, draw diagonal to all of them except
 		// last and first one
-		stack.pop();
+		Vertex prevPopped = stack.pop();
 		while (stack.size() > 1) {
 			Vertex popped = stack.pop();
-			addTriangulationConnection(vertices[vertices.length - 1], popped, dcel, edges);
+			addTriangulationConnection(vertices[vertices.length - 1], popped, prevPopped, triangles);
+			prevPopped = popped;
 		}
-		stack.pop();
+		Vertex lastPopped = stack.pop();
+		addTriangulationConnection(vertices[vertices.length - 1], lastPopped, prevPopped, triangles);
 	}
 
 	/**
@@ -163,7 +163,6 @@ public class PolygonTriangulation {
 		// other faces we cannot use them, but we need them)
 		{
 			HalfEdge currEdge = face.edge;
-			System.out.println("ymonotone: face edge " + face.edge);
 			Vertex prev = null;
 			do {
 				Vertex v = currEdge.from;
@@ -212,8 +211,6 @@ public class PolygonTriangulation {
 		assert i + 1 == vertices.length;
 		vertices[i] = currNext;
 		assert vertices[i - 1].compareTo(vertices[i]) < 0;
-		System.out.println("List of vertices for face " + face);
-		System.out.println(Arrays.stream(vertices).map(Vertex::toString).collect(Collectors.joining(System.lineSeparator())));
 		return vertices;
 	}
 
@@ -242,14 +239,13 @@ public class PolygonTriangulation {
 		sls.edgeTree.insert(event.edge);
 	}
 
-	public static void handleRegularVertex(Vertex event, MakeMonotoneSweepLineStatus sls, List<Edge> edges) {
+	public static void handleRegularVertex(Vertex event, MakeMonotoneSweepLineStatus sls) {
 		if (!isAreaLeftOfVertex(event)) {
 			// connect if its a merge vertex
 			HalfEdge prevEdge = event.previousEdge();
 			assert prevEdge.helper != null;
 			assert prevEdge.helper.type != null;
 			if (prevEdge.helper.type == VertexType.MERGE) {
-				edges.add(new Edge(event, prevEdge.helper));
 				sls.dcel.insertEdge(event, prevEdge.helper);
 			}
 			// remove edge from tree as it is finished now
@@ -264,19 +260,17 @@ public class PolygonTriangulation {
 			assert toTheLeft.helper != null;
 			assert toTheLeft.helper.type != null;
 			if (toTheLeft.helper.type == VertexType.MERGE) {
-				edges.add(new Edge(event, toTheLeft.helper));
 				sls.dcel.insertEdge(event, toTheLeft.helper);
 			}
 			toTheLeft.helper = event;
 		}
 	}
 
-	public static void handleSplitVertex(Vertex event, MakeMonotoneSweepLineStatus sls, List<Edge> edges) {
+	public static void handleSplitVertex(Vertex event, MakeMonotoneSweepLineStatus sls) {
 		// Draw diagonal to helper of edge to the left
 		sls.edgeTree.currentY = event.y;
 		HalfEdge edgeToTheLeft = sls.edgeTree.findToLeft(event);
 		sls.dcel.insertEdge(event, edgeToTheLeft.helper);
-		edges.add(new Edge(event, edgeToTheLeft.helper));
 		// set event as new helper of edge to the left
 		edgeToTheLeft.helper = event;
 		// add new edge
@@ -285,12 +279,11 @@ public class PolygonTriangulation {
 
 	}
 
-	public static void handleMergeVertex(Vertex event, MakeMonotoneSweepLineStatus sls, List<Edge> edges) {
+	public static void handleMergeVertex(Vertex event, MakeMonotoneSweepLineStatus sls) {
 		// make diagonal to helper of prev edge if its a merge vertex
 		HalfEdge prevEdge = event.previousEdge();
 		if (prevEdge.helper.type == VertexType.MERGE) {
 			sls.dcel.insertEdge(event, prevEdge.helper);
-			edges.add(new Edge(event, prevEdge.helper));
 		}
 		// remove that edge from the tree because that edge is now finished
 		sls.edgeTree.currentY = event.y;
@@ -298,19 +291,17 @@ public class PolygonTriangulation {
 		HalfEdge toTheLeft = sls.edgeTree.findToLeft(event);
 		if (toTheLeft.helper.type == VertexType.MERGE) {
 			sls.dcel.insertEdge(event, toTheLeft.helper);
-			edges.add(new Edge(event, toTheLeft.helper));
 		}
 		toTheLeft.helper = event;
 	}
 
-	public static void handleEndVertex(Vertex event, MakeMonotoneSweepLineStatus sls, List<Edge> edges) {
+	public static void handleEndVertex(Vertex event, MakeMonotoneSweepLineStatus sls) {
 		// make diagonal if helper of prev edge is merge vertex
 		HalfEdge prevEdge = event.previousEdge();
 		assert prevEdge.helper != null;
 		assert prevEdge.helper.type != null;
 		if (prevEdge.helper.type == VertexType.MERGE) {
 			sls.dcel.insertEdge(event, prevEdge.helper);
-			edges.add(new Edge(event,  prevEdge.helper));
 		}
 		sls.edgeTree.currentY = event.y;
 		// remove edge from tree as this edge is now finished

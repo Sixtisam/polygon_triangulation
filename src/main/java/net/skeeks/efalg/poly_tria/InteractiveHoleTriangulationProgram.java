@@ -18,30 +18,21 @@ public class InteractiveHoleTriangulationProgram {
 		vertices.add(new Vertex(400, 102));
 		vertices.add(new Vertex(220, 110));
 
-		Polygon p = new Polygon(
-				new Vertex[] { new Vertex(50, 50), new Vertex(300, 10), new Vertex(600, 50), new Vertex(700, 150),
-						new Vertex(600, 300), new Vertex(300, 320), new Vertex(50, 300), new Vertex(10, 150) });
-
 		Runnable refresh = () -> {
-			Vertex[] copied = new Vertex[vertices.size()];
-			int i = 0;
-			for (Vertex v : vertices) {
-				copied[i] = new Vertex(v.x, v.y);
-				i++;
-			}
-			Polygon hole = new Polygon(copied);
-			List<Edge> edges = new ArrayList<>();
+			Polygon p = new Polygon(
+					new Vertex[] { new Vertex(50, 50), new Vertex(300, 10), new Vertex(600, 50), new Vertex(700, 150),
+							new Vertex(600, 300), new Vertex(300, 320), new Vertex(50, 300), new Vertex(10, 150) });
+			Polygon hole = new Polygon(vertices.toArray(new Vertex[0]));
+			List<Polygon> holes = vertices.size() > 0 ? Collections.singletonList(hole) : Collections.emptyList();
 			try {
-				List<Face> faces = PolygonTriangulation.triangulate(Collections.singletonList(p),
-						Collections.singletonList(hole), edges);
-//				painter.setFaces(faces.toArray(new Face[0]));
+				List<Triangle> triangles = PolygonTriangulation.triangulate(Collections.singletonList(p), holes);
 				painter.setPolygons(new Polygon[] { p, hole });
-//				painter.setPolygons(new Polygon[] {p});
-				painter.setEdges(edges.toArray(new Edge[0]));
+				painter.setTriangels(triangles);
 				painter.setHelpText("Success");
 			} catch (Throwable t) {
 				t.printStackTrace();
 				painter.setPolygons(new Polygon[] { p, hole });
+				painter.setTriangels(Collections.emptyList());
 				painter.setFaces(new Face[0]);
 				painter.setHelpText("Error occurred");
 			}

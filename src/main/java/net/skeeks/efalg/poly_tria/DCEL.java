@@ -59,7 +59,6 @@ public class DCEL {
 		Face sameFace = null;
 		do {
 			if(currEdge == newEdge) {
-				System.out.println("same face");
 				sameFace = newEdge.face;
 			}
 			currEdge.face = newFace;
@@ -69,7 +68,6 @@ public class DCEL {
 		if(sameFace != null) {
 			faces.remove(sameFace);
 		}
-		System.out.println("Setting edge on face" + v1PreviousEdge.face.color + " to " + newEdge);
 	}
 
 	/**

@@ -49,12 +49,12 @@ public class PolygonTriangulationProgram {
 
 		// Run the algorithm
 		long start = System.nanoTime();
-		List<Face> faces = PolygonTriangulation.triangulate(polygons, holes, new ArrayList<>());
+		List<Triangle> triangles = PolygonTriangulation.triangulate(polygons, holes);
 		System.out.println("Triangulation took " + ((System.nanoTime() - start) / 1_000_000) + "ms");
 		// Show visualization
 		GeometryPainter painter = new GeometryPainter();
 		painter.setPolygons(polygons.toArray(new Polygon[0]));
-		painter.setFaces(faces.toArray(new Face[0]));
+		painter.setTriangels(triangles);
 		painter.setPoints(polygons.stream()
 				.filter(Objects::nonNull)
 				.flatMap(polygon -> Arrays.stream(polygon.vertices))

@@ -5,16 +5,13 @@ public class Common {
     public static void main(String[] args) {
         Line g1 = new Line(new Point(3, 2), new Vector(2, 5));
         Line g2 = new Line(new Point(4, 2), new Vector(-2, 2));
-        System.out.println(intersectionPoint(g1, g2));
 
         Vector v1 = new Vector(0, 1);
         Vector v2 = new Vector(100, 0);
 
-        System.out.println("T-Area: " + triangleArea(v1, v2));
 
         Polygon polygon = new Polygon(        new Point(5, 4),new Point(4, 2),new Point(3, 4),new Point(1, 1),new Point(7, 1));
         // Polygon polygon = new Polygon(new Point(4, 2), new Point(5, 4),new Point(7, 1),new Point(1, 1),new Point(3, 4));
-        System.out.println("Clockwise: " + isClockwise(polygon));
     }
 
     /**
