@@ -33,6 +33,8 @@ public class HalfEdge {
 	 */
 	public HalfEdge next;
 	
+	public HalfEdge prev;
+	
 
 	/**
 	 * The face which lays to the left (counter-clockwise order) of this edge.

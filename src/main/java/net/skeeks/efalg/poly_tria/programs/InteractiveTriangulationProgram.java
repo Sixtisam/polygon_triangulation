@@ -31,9 +31,8 @@ public class InteractiveTriangulationProgram {
 				painter.setPolygons(new Polygon[0]);
 				painter.setHelpText("Success");
 				
-				System.out.print("Polygon polygon = ");
-				printJavaCode(p);
-				printTriangles(triangles);
+//				printJavaCode(p);
+//				printTriangles(triangles);
 			} catch (Throwable t) {
 				t.printStackTrace();
 				painter.setPolygons(new Polygon[] { p });
@@ -62,7 +61,7 @@ public class InteractiveTriangulationProgram {
 	}
 	
 	static void printJavaCode(Polygon polygon) {
-		System.out.println("new Polygon(new Vertex[]{");
+		System.out.println("Polygon = new Polygon(new Vertex[]{");
 		for(Vertex v : polygon.vertices) {
 			System.out.println("new Vertex(" + v.x + ", " + v.y + "), ");
 		}

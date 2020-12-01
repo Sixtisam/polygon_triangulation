@@ -48,18 +48,21 @@ public class MakeMonotoneSweepLineStatus {
 			edge.from = currV;
 			edge.face = polygonFace;
 			edge.next = null; // not known yet
+			edge.prev = prevEdge;
 			edge.twin = twinEdge;
 			
 			
 			// init twin edge
 			twinEdge.next = prevTwinEdge;
 			twinEdge.face = null; // outer face which can be ignored for the triangulation algorithm
+			twinEdge.prev = prevTwinEdge;
 			twinEdge.twin = edge;
 			
 			if(prevEdge != null) {
 				prevEdge.next = edge;
 			}
 			if(prevTwinEdge != null) {
+				prevTwinEdge.prev = twinEdge;
 				prevTwinEdge.from = currV;
 			}
 			
@@ -86,6 +89,8 @@ public class MakeMonotoneSweepLineStatus {
 		Vertex lastVertex = polygon.vertices[polygon.vertices.length - 1];
 		lastVertex.edge.next = firstVertex.edge;
 		lastVertex.edge.twin.from = firstVertex;
+		lastVertex.edge.twin.prev = firstVertex.edge.twin;
+		firstVertex.edge.prev = lastVertex.edge;
 		firstVertex.edge.twin.next = lastVertex.edge;
 		
 		// set edge of polygonFace to an arbitrary edge 
@@ -97,6 +102,7 @@ public class MakeMonotoneSweepLineStatus {
 			splitOrMergeVerticesCount += initHole(dcel, events, polygon.holes.get(i));
 		}
 		
+		// sort descending-y (if same, ascending x)
 		Collections.sort(events);
 		return splitOrMergeVerticesCount;
 	}
@@ -119,6 +125,7 @@ public class MakeMonotoneSweepLineStatus {
 			// init edge 
 			edge.from = currV;
 			edge.face = holePolygonFace;
+			edge.prev = prevEdge;
 			edge.next = null; // not known yet
 			edge.twin = twinEdge;
 			
@@ -126,12 +133,14 @@ public class MakeMonotoneSweepLineStatus {
 			// init twin edge
 			twinEdge.next = prevTwinEdge;
 			twinEdge.face = holeFace; // outer face is the polygon face (hole)
+			twinEdge.prev = prevTwinEdge;
 			twinEdge.twin = edge;
 			
 			if(prevEdge != null) {
 				prevEdge.next = edge;
 			}
 			if(prevTwinEdge != null) {
+				prevTwinEdge.prev = twinEdge;
 				prevTwinEdge.from = currV;
 			}
 			
@@ -158,9 +167,11 @@ public class MakeMonotoneSweepLineStatus {
 		// connect first and last vertex
 		Vertex firstVertex = holePolygon.vertices[0];
 		Vertex lastVertex = holePolygon.vertices[holePolygon.vertices.length - 1];
+		lastVertex.edge.twin.prev = firstVertex.edge.twin;
 		lastVertex.edge.next = firstVertex.edge;
 		lastVertex.edge.twin.from = firstVertex;
 		firstVertex.edge.twin.next = lastVertex.edge;
+		firstVertex.edge.prev = lastVertex.edge;
 		
 		return splitOrMergeVerticesCount;
 	}

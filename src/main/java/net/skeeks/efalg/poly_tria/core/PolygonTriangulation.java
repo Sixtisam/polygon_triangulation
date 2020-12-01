@@ -182,6 +182,7 @@ public class PolygonTriangulation {
 		ArrayList<Vertex> tmpVertices = new ArrayList<>();
 
 		Vertex max = null; // vertex that will later become ChainType.START
+		HalfEdge maxEdge = null;
 		// First, create a doubly connected list (since the 'twin' half edges now form
 		// other faces we cannot use them, but we need them)
 		{
@@ -189,21 +190,22 @@ public class PolygonTriangulation {
 			Vertex prev = null;
 			do {
 				Vertex v = currEdge.from;
-				v.triangulationPrev = prev; // must be overwritten
-				v.triangulationEdge = currEdge; // must be overwritten
+//				v.triangulationPrev = prev; // must be overwritten
+//				v.triangulationEdge = currEdge; // must be overwritten
 				tmpVertices.add(v);
 				if (max == null || v.compareTo(max) < 0) {
 					max = v;
+					maxEdge = currEdge;
 				}
 				prev = v;
 				currEdge = currEdge.next;
 			} while (currEdge != face.edge);
-			face.edge.from.triangulationPrev = prev; // also set prev vertex of first vertex
-			face.edge.from.triangulationEdge = face.edge; // must be overwritten
-			// integrity check
-			for (Vertex v : tmpVertices) {
-				assert v.triangulationPrev != null;
-			}
+//			face.edge.from.triangulationPrev = prev; // also set prev vertex of first vertex
+//			face.edge.from.triangulationEdge = face.edge; // must be overwritten
+//			// integrity check
+//			for (Vertex v : tmpVertices) {
+//				assert v.triangulationPrev != null;
+//			}
 		}
 
 		// list that will be returned
@@ -213,26 +215,26 @@ public class PolygonTriangulation {
 		vertices[0] = max;
 
 		// traverse all other vertices
-		Vertex currNext = max.triangulationNext();
-		Vertex currPrev = max.triangulationPrev;
+		HalfEdge currNext = maxEdge.next;
+		HalfEdge currPrev = maxEdge.prev;
 		int i = 1;
 		while (currNext != currPrev) {
-			if (currNext.compareTo(currPrev) < 0) {
+			if (currNext.from.compareTo(currPrev.from) < 0) {
 				// currNext is higher
-				currNext.triangulationChainType = ChainType.LEFT;
-				vertices[i++] = currNext;
-				currNext = currNext.triangulationNext();
+				currNext.from.triangulationChainType = ChainType.LEFT;
+				vertices[i++] = currNext.from;
+				currNext = currNext.next;
 			} else {
 				// currPrev is higher
-				currPrev.triangulationChainType = ChainType.RIGHT;
-				vertices[i++] = currPrev;
-				currPrev = currPrev.triangulationPrev;
+				currPrev.from.triangulationChainType = ChainType.RIGHT;
+				vertices[i++] = currPrev.from;
+				currPrev = currPrev.prev;
 			}
 			assert vertices[i - 2].compareTo(vertices[i - 1]) < 0;
 		}
 		assert currNext == currPrev;
 		assert i + 1 == vertices.length;
-		vertices[i] = currNext;
+		vertices[i] = currNext.from;
 		assert vertices[i - 1].compareTo(vertices[i]) < 0;
 		return vertices;
 	}
@@ -265,7 +267,7 @@ public class PolygonTriangulation {
 	public static void handleRegularVertex(Vertex event, MakeMonotoneSweepLineStatus sls) {
 		if (!isAreaLeftOfVertex(event)) {
 			// connect if its a merge vertex
-			HalfEdge prevEdge = event.previousEdge();
+			HalfEdge prevEdge = event.prev.edge;
 			assert prevEdge.helper != null;
 			assert prevEdge.helper.type != null;
 			if (prevEdge.helper.type == VertexType.MERGE) {
@@ -304,7 +306,7 @@ public class PolygonTriangulation {
 
 	public static void handleMergeVertex(Vertex event, MakeMonotoneSweepLineStatus sls) {
 		// make diagonal to helper of prev edge if its a merge vertex
-		HalfEdge prevEdge = event.previousEdge();
+		HalfEdge prevEdge = event.prev.edge;
 		if (prevEdge.helper.type == VertexType.MERGE) {
 			insertConnection(event, prevEdge, sls);
 		}
@@ -333,7 +335,6 @@ public class PolygonTriangulation {
 
 	public static void insertConnection(Vertex event, HalfEdge toTheLeft, MakeMonotoneSweepLineStatus sls) {
 		if (event.edge.face.hole) {
-			System.out.println("Detected hole at " + event + " associating with face of edge to theleft: " + toTheLeft);
 			// will only be true for the uppermost vertex of any holes.
 			// this code will set the face of the hole (outer edges)
 			Face newFace = toTheLeft.face; // the edges of the hole will be associated with the face of the edge to the
@@ -346,7 +347,7 @@ public class PolygonTriangulation {
 			} while (curr != event.edge);
 
 		}
-		sls.dcel.insertEdge(event, toTheLeft.helper);
+		sls.dcel.insertEdge(event, toTheLeft);
 		// progress visualization
 		PROGRESS_EDGES.add(new Edge(event, toTheLeft.helper));
 	}
