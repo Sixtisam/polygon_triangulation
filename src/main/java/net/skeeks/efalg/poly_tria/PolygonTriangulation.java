@@ -14,8 +14,10 @@ import java.util.stream.Collectors;
  */
 public class PolygonTriangulation {
 
+	public static List<Edge> PROGRESS_EDGES = new ArrayList<>();
+	
 	public static List<Triangle> triangulate(List<Polygon> polygons, List<Polygon> holes) {
-
+		PROGRESS_EDGES.clear();
 		mapHolesToPolygons(polygons, holes);
 
 		ArrayList<Triangle> triangles = new ArrayList<>();
@@ -82,6 +84,7 @@ public class PolygonTriangulation {
 		assert v2 != null;
 		assert v3 != null;
 		triangles.add(new Triangle(v1, v2, v3));
+		PROGRESS_EDGES.add(new Edge(v1, v2));
 	}
 
 	public static void triangulateMonotonePolygon(Face face, DCEL dcel, List<Triangle> triangles) {
@@ -246,7 +249,7 @@ public class PolygonTriangulation {
 			assert prevEdge.helper != null;
 			assert prevEdge.helper.type != null;
 			if (prevEdge.helper.type == VertexType.MERGE) {
-				sls.dcel.insertEdge(event, prevEdge.helper);
+				insertConnection(event, prevEdge, sls);
 			}
 			// remove edge from tree as it is finished now
 			sls.edgeTree.currentY = event.y;
@@ -260,7 +263,7 @@ public class PolygonTriangulation {
 			assert toTheLeft.helper != null;
 			assert toTheLeft.helper.type != null;
 			if (toTheLeft.helper.type == VertexType.MERGE) {
-				sls.dcel.insertEdge(event, toTheLeft.helper);
+				insertConnection(event, toTheLeft, sls);
 			}
 			toTheLeft.helper = event;
 		}
@@ -270,7 +273,8 @@ public class PolygonTriangulation {
 		// Draw diagonal to helper of edge to the left
 		sls.edgeTree.currentY = event.y;
 		HalfEdge edgeToTheLeft = sls.edgeTree.findToLeft(event);
-		sls.dcel.insertEdge(event, edgeToTheLeft.helper);
+		insertConnection(event, edgeToTheLeft, sls);
+		PROGRESS_EDGES.add(new Edge(event, edgeToTheLeft.helper));
 		// set event as new helper of edge to the left
 		edgeToTheLeft.helper = event;
 		// add new edge
@@ -283,14 +287,14 @@ public class PolygonTriangulation {
 		// make diagonal to helper of prev edge if its a merge vertex
 		HalfEdge prevEdge = event.previousEdge();
 		if (prevEdge.helper.type == VertexType.MERGE) {
-			sls.dcel.insertEdge(event, prevEdge.helper);
+			insertConnection(event, prevEdge, sls);
 		}
 		// remove that edge from the tree because that edge is now finished
 		sls.edgeTree.currentY = event.y;
 		sls.edgeTree.remove(prevEdge);
 		HalfEdge toTheLeft = sls.edgeTree.findToLeft(event);
 		if (toTheLeft.helper.type == VertexType.MERGE) {
-			sls.dcel.insertEdge(event, toTheLeft.helper);
+			insertConnection(event, toTheLeft, sls);
 		}
 		toTheLeft.helper = event;
 	}
@@ -301,11 +305,29 @@ public class PolygonTriangulation {
 		assert prevEdge.helper != null;
 		assert prevEdge.helper.type != null;
 		if (prevEdge.helper.type == VertexType.MERGE) {
-			sls.dcel.insertEdge(event, prevEdge.helper);
+			insertConnection(event, prevEdge, sls);
 		}
 		sls.edgeTree.currentY = event.y;
 		// remove edge from tree as this edge is now finished
 		sls.edgeTree.remove(prevEdge);
+	}
+	
+	public static void insertConnection(Vertex event, HalfEdge toTheLeft, MakeMonotoneSweepLineStatus sls) {
+		if(event.edge.face.hole) {
+			System.out.println("Detected hole at " + event + " associating with face of edge to theleft: " + toTheLeft);
+			// will only be true for the uppermost vertex of any holes.
+			// this code will set the face of the hole (outer edges)
+			Face newFace = toTheLeft.face; // the edges of the hole will be associated with the face of the edge to the left
+			assert !newFace.hole;
+			HalfEdge curr = event.edge; // twin edge is in the polygon, normal edge would be inside
+			do {
+				curr.face = newFace;
+				curr = curr.next;
+			} while(curr != event.edge);
+			
+		}
+		sls.dcel.insertEdge(event, toTheLeft.helper);
+		PROGRESS_EDGES.add(new Edge(event, toTheLeft.helper));
 	}
 
 	/**

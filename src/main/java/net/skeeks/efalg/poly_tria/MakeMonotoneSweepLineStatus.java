@@ -12,8 +12,8 @@ import java.util.List;
  *
  */
 public class MakeMonotoneSweepLineStatus {
-	public List<Vertex> events;
-	public DCEL dcel = new DCEL();
+	public final List<Vertex> events = new ArrayList<>();;
+	public final DCEL dcel = new DCEL();
 	public final EdgeSearchTree edgeTree  = new EdgeSearchTree();
 
 	/**
@@ -21,11 +21,10 @@ public class MakeMonotoneSweepLineStatus {
 	 * @return the number of split or merge vertices in the polygon
 	 */
 	public int init(Polygon polygon) {
-		events = new ArrayList<>();
 		int splitOrMergeVerticesCount = 0;
 		
 		// A polygon from the input file has initially only 1 face.
-		Face polygonFace = new Face();
+		Face polygonFace = new Face(false);
 		dcel.faces.add(polygonFace);
 		
 		HalfEdge prevEdge = null;
@@ -88,16 +87,17 @@ public class MakeMonotoneSweepLineStatus {
 		dcel.integrityCheck();
 
 		for(int i = 0; i < polygon.holes.size(); i++) {
-			splitOrMergeVerticesCount += initHole(dcel, events, polygon.holes.get(i), polygonFace);
+			splitOrMergeVerticesCount += initHole(dcel, events, polygon.holes.get(i));
 		}
 		
 		Collections.sort(events);
 		return splitOrMergeVerticesCount;
 	}
 	
-	public static int initHole(DCEL dcel, List<Vertex> events, Polygon holePolygon, Face polygonFace) {
+	public static int initHole(DCEL dcel, List<Vertex> events, Polygon holePolygon) {
 		Face holeFace = null;
-		// polygon is CLOCKWISE!
+		Face holePolygonFace = new Face(true); // face of polygon but has to be specially marked
+		// explicitly do not ad the hole polygon face to the faces list in dcel (that is done later)
 		
 		HalfEdge prevEdge = null;
 		HalfEdge prevTwinEdge = null;
@@ -111,7 +111,7 @@ public class MakeMonotoneSweepLineStatus {
 			
 			// init edge 
 			edge.from = currV;
-			edge.face = polygonFace;
+			edge.face = holePolygonFace;
 			edge.next = null; // not known yet
 			edge.twin = twinEdge;
 			
@@ -129,8 +129,6 @@ public class MakeMonotoneSweepLineStatus {
 			}
 			
 			// init vertex
-			
-			currV.hole = true;
 			// arguments MUST NOT be switched as they are already "switched"
 			splitOrMergeVerticesCount += categorizeVertex(currV, nextV, prevV);
 			
@@ -157,11 +155,12 @@ public class MakeMonotoneSweepLineStatus {
 		lastVertex.edge.twin.from = firstVertex;
 		firstVertex.edge.twin.next = lastVertex.edge;
 		
-		
-		
 		return splitOrMergeVerticesCount;
 	}
 
+	/**
+	 * Set the vertex type depending on position of previous and next vertex as well as the interior angle
+	 */
 	public static int categorizeVertex(Vertex currV, Vertex nextV, Vertex prevV) {
 		boolean isNextVBelow = currV.y > nextV.y || (currV.y == nextV.y && currV.x < nextV.x);
 		boolean isPrevVBelow = currV.y > prevV.y || (currV.y == prevV.y && currV.x < prevV.x);

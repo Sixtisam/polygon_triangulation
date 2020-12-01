@@ -2,6 +2,7 @@ package net.skeeks.efalg.poly_tria;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 
@@ -25,13 +26,15 @@ public class DCEL {
 	 * 
 	 */
 	public void insertEdge(Vertex v1, Vertex v2) {
-		Face newFace = new Face();
+		Face newFace = new Face(false);
 		faces.add(newFace);
 		HalfEdge[] prevEdges = getPreviousVerticesWithCommonFace(v1, v2);
 		HalfEdge v1PreviousEdge = prevEdges[0];
 		HalfEdge v2PreviousEdge = prevEdges[1];
 		HalfEdge v1Edge = v1PreviousEdge.next;
 		HalfEdge v2Edge = v2PreviousEdge.next;
+		assert v1PreviousEdge.next.face == v1PreviousEdge.face;
+		assert v2PreviousEdge.next.face == v2PreviousEdge.face;
 		// create new edges
 		HalfEdge newEdge = new HalfEdge();
 		HalfEdge newTwinEdge = new HalfEdge();
@@ -56,16 +59,20 @@ public class DCEL {
 		// update face of the new halved polygon
 		newFace.edge = newTwinEdge;
 		HalfEdge currEdge = newTwinEdge;
+		System.out.println("Updating face counterclockwise, starting from " + currEdge.from);
 		Face sameFace = null;
 		do {
+			// when a polygon has at least one hole, a diagonal connecting to vertex must not necessary lead 2 separat polygons, they still can be one single polygon and therefore, 
 			if(currEdge == newEdge) {
 				sameFace = newEdge.face;
 			}
+			System.out.println("Updating face " + currEdge);
 			currEdge.face = newFace;
 			currEdge = currEdge.next;
 		} while (currEdge != newTwinEdge);
 
 		if(sameFace != null) {
+			System.out.println("Same face: " + sameFace);
 			faces.remove(sameFace);
 		}
 	}
@@ -75,12 +82,13 @@ public class DCEL {
 	 * common face first.
 	 */
 	public HalfEdge[] getPreviousVerticesWithCommonFace(Vertex v1, Vertex v2) {
-
+		// TODO ske in some cases where there is more than one hole, this function does not return the correct prev edges and the algorithm fails therefore.
 		HalfEdge v1PrevCandidate = v1.previousEdge();
 		do {
 			HalfEdge v2PrevCandidate = v2.previousEdge();
 			do {
 				if (v1PrevCandidate.face == v2PrevCandidate.face) {
+					assert v1PrevCandidate.face != null;
 					return new HalfEdge[] { v1PrevCandidate, v2PrevCandidate };
 				}
 				v2PrevCandidate = v2PrevCandidate.next.twin;
@@ -88,9 +96,13 @@ public class DCEL {
 			v1PrevCandidate = v1PrevCandidate.next.twin;
 		} while (v1PrevCandidate != v1.edge.twin);
 
+		
+		System.out.println("v1: " + v1);
+		System.out.println("v2: " + v2);
+		System.out.println(faces.stream().map(f -> f.color.toString()).collect(Collectors.joining()));
 		throw new RuntimeException("No common face found!");
 	}
-
+	
 	public void integrityCheck() {
 		for (Vertex v : vertices) {
 			assert v.edge != null;

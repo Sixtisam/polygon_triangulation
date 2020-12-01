@@ -7,6 +7,8 @@ import java.awt.FlowLayout;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -26,7 +28,7 @@ public class GeometryPainter {
 	private final JFrame frame = new JFrame("GraphDrawer");
 	private final Canvas canvas = new Canvas();
 	private final ControlPanel controlPanel = new ControlPanel();
-	private final MouseConsumer consumerListener = new MouseConsumer();
+	private final InteractionListener interactionListener = new InteractionListener();
 	public final static int BORDER = 10;
 
 	public static final int SCALE = 3;
@@ -40,9 +42,10 @@ public class GeometryPainter {
 			controlPanel.init();
 			canvas.setPreferredSize(new Dimension(1900, 1100));
 			canvas.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 10));
+			frame.addKeyListener(interactionListener);
 			canvas.addMouseMotionListener(controlPanel);
-			canvas.addMouseListener(consumerListener);
-			canvas.addMouseMotionListener(consumerListener);
+			canvas.addMouseListener(interactionListener);
+			canvas.addMouseMotionListener(interactionListener);
 			frame.add(controlPanel);
 			frame.add(canvas);
 			// Display the window.
@@ -61,6 +64,8 @@ public class GeometryPainter {
 	};
 	public volatile BiConsumer<Integer, Integer> mouseRightClickConsumer = (a, b) -> {
 	};
+	public volatile Runnable spaceConsumer = () -> {
+	};
 
 	public void setPolygons(Polygon[] polygons) {
 		SwingUtilities.invokeLater(() -> {
@@ -75,7 +80,7 @@ public class GeometryPainter {
 			canvas.repaint();
 		});
 	}
-	
+
 	public void setTriangels(List<Triangle> triangles) {
 		SwingUtilities.invokeLater(() -> {
 			canvas.triangles = triangles;
@@ -108,7 +113,7 @@ public class GeometryPainter {
 		});
 	}
 
-	public class MouseConsumer implements MouseListener, MouseMotionListener {
+	public class InteractionListener implements MouseListener, MouseMotionListener, KeyListener {
 		@Override
 		public void mousePressed(MouseEvent e) {
 			int[] p = translatePoint(e.getX(), e.getY());
@@ -122,6 +127,14 @@ public class GeometryPainter {
 		}
 
 		@Override
+		public void keyPressed(KeyEvent e) {
+			if (e.getKeyCode() == KeyEvent.VK_SPACE) {
+				spaceConsumer.run();
+			}
+
+		}
+
+		@Override
 		public void mouseMoved(MouseEvent e) {
 			int[] p = translatePoint(e.getX(), e.getY());
 			if (e.isShiftDown()) {
@@ -132,6 +145,14 @@ public class GeometryPainter {
 				mouseMoveConsumer.accept(p[0], p[1]);
 			}
 			canvas.repaint();
+		}
+
+		@Override
+		public void keyReleased(KeyEvent e) {
+		}
+
+		@Override
+		public void keyTyped(KeyEvent e) {
 		}
 
 		@Override
@@ -189,7 +210,6 @@ public class GeometryPainter {
 				graphic2d.drawPolygon(xPoints, yPoints, xPoints.length);
 			}
 
-
 			Color c = new Color(0xa59d0191, true);
 			graphic2d.setColor(c);
 			for (Edge edge : edges) {
@@ -205,15 +225,18 @@ public class GeometryPainter {
 				graphic2d.drawLine(point.x, -(point.y + 3), point.x, -(point.y - 3));
 				graphic2d.drawLine(point.x - 3, -point.y, point.x + 3, -(point.y));
 			}
-			
-			for(Triangle t : triangles) {
+
+			graphic2d.setColor(Color.RED);
+
+			for (Triangle t : triangles) {
 				drawTriangle(t, graphic2d);
 			}
 
 		}
-		
+
 		private void drawTriangle(Triangle triangle, Graphics2D g) {
-			g.drawPolygon(new int[] {triangle.p1.x,  triangle.p2.x, triangle.p3.x}, new int[] {-triangle.p1.y, -triangle.p2.y, -triangle.p3.y}, 3);
+			g.drawPolygon(new int[] { triangle.p1.x, triangle.p2.x, triangle.p3.x },
+					new int[] { -triangle.p1.y, -triangle.p2.y, -triangle.p3.y }, 3);
 		}
 
 		private void drawFace(Face face, Graphics g) {
@@ -229,10 +252,11 @@ public class GeometryPainter {
 	}
 
 	private final JLabel helpLabel = new JLabel("");
+
 	public void setHelpText(String text) {
 		helpLabel.setText(text);
 	}
-	
+
 	public class ControlPanel extends JPanel implements MouseMotionListener {
 		private static final long serialVersionUID = 1L;
 
@@ -246,8 +270,6 @@ public class GeometryPainter {
 			add(yLabel);
 			add(helpLabel);
 		}
-
-
 
 		/**
 		 * Called on mouse move on canvas

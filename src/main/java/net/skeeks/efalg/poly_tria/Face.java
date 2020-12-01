@@ -14,6 +14,8 @@ public class Face {
 	 */
 	public HalfEdge edge;
 	
+	public boolean hole = false;
+	
 	public Color color;
 	
 	public static int i = 0;
@@ -31,8 +33,9 @@ public class Face {
 		Color.CYAN,
 	};
 	
-	public Face(){
-		color = COLORS[Math.floorMod(i++, COLORS.length)];
+	public Face(boolean hole){
+		this.hole = hole;
+		this.color = COLORS[Math.floorMod(i++, COLORS.length)];
 	}
 	
 	@Override
