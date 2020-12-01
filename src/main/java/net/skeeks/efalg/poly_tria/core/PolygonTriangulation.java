@@ -1,21 +1,34 @@
-package net.skeeks.efalg.poly_tria;
+// This is a personal academic project. Dear PVS-Studio, please check it.
+
+// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: http://www.viva64.com
+package net.skeeks.efalg.poly_tria.core;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
-import java.util.stream.Collectors;
+
+import net.skeeks.efalg.poly_tria.Edge;
 
 /**
- * 
+ * Implement a y-monotone polygon triangulation algorithm
  * @author Samuel Keusch <samuel.keusch@students.fhnw.ch>
  *
  */
 public class PolygonTriangulation {
 
+	/**
+	 * only used to preserve the edges order in which they were added.
+	 */
 	public static List<Edge> PROGRESS_EDGES = new ArrayList<>();
-	
+
+	/**
+	 * Triangulates a list of polygons with holes
+	 * 
+	 * @param polygons - polygons (counter-clockwise)
+	 * @param holes    - the holes (clockwise)
+	 * @return A list of triangles resulting in triangulation of all the polygons
+	 */
 	public static List<Triangle> triangulate(List<Polygon> polygons, List<Polygon> holes) {
 		PROGRESS_EDGES.clear();
 		mapHolesToPolygons(polygons, holes);
@@ -57,9 +70,8 @@ public class PolygonTriangulation {
 			// 2. Triangulate those y-monotone polygons
 			// -----------------------------------------------------
 			for (int i = 0; i < sls.dcel.faces.size(); i++) {
-				triangulateMonotonePolygon(sls.dcel.faces.get(i), sls.dcel, triangles);
+				triangulateMonotonePolygon(sls.dcel.faces.get(i), triangles);
 			}
-			
 		}
 		return triangles;
 	}
@@ -79,15 +91,23 @@ public class PolygonTriangulation {
 		}
 	}
 
+	/**
+	 * Adds triangle to the triangulation results
+	 */
 	public static void addTriangulationConnection(Vertex v1, Vertex v2, Vertex v3, List<Triangle> triangles) {
 		assert v1 != null;
 		assert v2 != null;
 		assert v3 != null;
 		triangles.add(new Triangle(v1, v2, v3));
+		
+		// also add new edge to progress list
 		PROGRESS_EDGES.add(new Edge(v1, v2));
 	}
 
-	public static void triangulateMonotonePolygon(Face face, DCEL dcel, List<Triangle> triangles) {
+	/**
+	 * Triangulates a y-monotone polygon
+	 */
+	public static void triangulateMonotonePolygon(Face face, List<Triangle> triangles) {
 		Vertex[] vertices = getYMonotoneVertices(face);
 		assert vertices.length >= 3;
 		if (vertices.length == 3) {
@@ -102,20 +122,20 @@ public class PolygonTriangulation {
 		// Start at 3 vertex as for the first two, there is nothing to triangulate
 		for (int i = 2; i < vertices.length - 1; i++) {
 			Vertex curr = vertices[i];
-			
-			if (stack.peek().chainType != curr.chainType) {
+
+			if (stack.peek().triangulationChainType != curr.triangulationChainType) {
 				// Different chains -> Connect all vertices on stack (always possible)
 
 				Vertex prevPopped = null;
 				do {
 					Vertex popped = stack.pop();
-					if(prevPopped != null) {
+					if (prevPopped != null) {
 						addTriangulationConnection(curr, popped, prevPopped, triangles);
 					}
 					prevPopped = popped;
 				} while (stack.size() > 1);
 				Vertex v1 = stack.pop(); // last vertex on stack must be popped but not connected
-				if(prevPopped != null) {
+				if (prevPopped != null) {
 					addTriangulationConnection(curr, v1, prevPopped, triangles);
 				}
 				assert i - 1 >= 1;
@@ -189,7 +209,7 @@ public class PolygonTriangulation {
 		// list that will be returned
 		Vertex[] vertices = new Vertex[tmpVertices.size()];
 		// init max vertex
-		max.chainType = ChainType.START;
+		max.triangulationChainType = ChainType.START;
 		vertices[0] = max;
 
 		// traverse all other vertices
@@ -199,12 +219,12 @@ public class PolygonTriangulation {
 		while (currNext != currPrev) {
 			if (currNext.compareTo(currPrev) < 0) {
 				// currNext is higher
-				currNext.chainType = ChainType.LEFT;
+				currNext.triangulationChainType = ChainType.LEFT;
 				vertices[i++] = currNext;
 				currNext = currNext.triangulationNext();
 			} else {
 				// currPrev is higher
-				currPrev.chainType = ChainType.RIGHT;
+				currPrev.triangulationChainType = ChainType.RIGHT;
 				vertices[i++] = currPrev;
 				currPrev = currPrev.triangulationPrev;
 			}
@@ -224,7 +244,7 @@ public class PolygonTriangulation {
 		int v2x = to.x - between.x;
 		int v2y = to.y - between.y;
 		long cross = (v1x * v2y) - (v1y * v2x);
-		if (from.chainType == ChainType.LEFT) {
+		if (from.triangulationChainType == ChainType.LEFT) {
 			return cross > 0;
 		} else {
 			return cross < 0;
@@ -274,7 +294,6 @@ public class PolygonTriangulation {
 		sls.edgeTree.currentY = event.y;
 		HalfEdge edgeToTheLeft = sls.edgeTree.findToLeft(event);
 		insertConnection(event, edgeToTheLeft, sls);
-		PROGRESS_EDGES.add(new Edge(event, edgeToTheLeft.helper));
 		// set event as new helper of edge to the left
 		edgeToTheLeft.helper = event;
 		// add new edge
@@ -311,22 +330,24 @@ public class PolygonTriangulation {
 		// remove edge from tree as this edge is now finished
 		sls.edgeTree.remove(prevEdge);
 	}
-	
+
 	public static void insertConnection(Vertex event, HalfEdge toTheLeft, MakeMonotoneSweepLineStatus sls) {
-		if(event.edge.face.hole) {
+		if (event.edge.face.hole) {
 			System.out.println("Detected hole at " + event + " associating with face of edge to theleft: " + toTheLeft);
 			// will only be true for the uppermost vertex of any holes.
 			// this code will set the face of the hole (outer edges)
-			Face newFace = toTheLeft.face; // the edges of the hole will be associated with the face of the edge to the left
+			Face newFace = toTheLeft.face; // the edges of the hole will be associated with the face of the edge to the
+											// left
 			assert !newFace.hole;
 			HalfEdge curr = event.edge; // twin edge is in the polygon, normal edge would be inside
 			do {
 				curr.face = newFace;
 				curr = curr.next;
-			} while(curr != event.edge);
-			
+			} while (curr != event.edge);
+
 		}
 		sls.dcel.insertEdge(event, toTheLeft.helper);
+		// progress visualization
 		PROGRESS_EDGES.add(new Edge(event, toTheLeft.helper));
 	}
 

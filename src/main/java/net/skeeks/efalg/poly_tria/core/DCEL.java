@@ -1,4 +1,7 @@
-package net.skeeks.efalg.poly_tria;
+// This is a personal academic project. Dear PVS-Studio, please check it.
+
+// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: http://www.viva64.com
+package net.skeeks.efalg.poly_tria.core;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +30,7 @@ public class DCEL {
 	 */
 	public void insertEdge(Vertex v1, Vertex v2) {
 		Face newFace = new Face(false);
-		faces.add(newFace);
+		addFace(newFace);
 		HalfEdge[] prevEdges = getPreviousVerticesWithCommonFace(v1, v2);
 		HalfEdge v1PreviousEdge = prevEdges[0];
 		HalfEdge v2PreviousEdge = prevEdges[1];
@@ -46,7 +49,7 @@ public class DCEL {
 		newEdge.from = v1;
 		v1PreviousEdge.next = newEdge;
 		newEdge.face = v1PreviousEdge.face;
-		
+
 		newEdge.face.edge = newEdge;
 		assert v2PreviousEdge.face == v1PreviousEdge.face; // must be same face
 		assert v1PreviousEdge.face != null; // must not be the OUTER face
@@ -62,8 +65,10 @@ public class DCEL {
 		System.out.println("Updating face counterclockwise, starting from " + currEdge.from);
 		Face sameFace = null;
 		do {
-			// when a polygon has at least one hole, a diagonal connecting to vertex must not necessary lead 2 separat polygons, they still can be one single polygon and therefore, 
-			if(currEdge == newEdge) {
+			// when a polygon has at least one hole, a diagonal connecting to vertex must
+			// not necessary lead 2 separat polygons, they still can be one single polygon
+			// and therefore,
+			if (currEdge == newEdge) {
 				sameFace = newEdge.face;
 			}
 			System.out.println("Updating face " + currEdge);
@@ -71,7 +76,7 @@ public class DCEL {
 			currEdge = currEdge.next;
 		} while (currEdge != newTwinEdge);
 
-		if(sameFace != null) {
+		if (sameFace != null) {
 			System.out.println("Same face: " + sameFace);
 			faces.remove(sameFace);
 		}
@@ -82,7 +87,8 @@ public class DCEL {
 	 * common face first.
 	 */
 	public HalfEdge[] getPreviousVerticesWithCommonFace(Vertex v1, Vertex v2) {
-		// TODO ske in some cases where there is more than one hole, this function does not return the correct prev edges and the algorithm fails therefore.
+		// TODO ske in some cases where there is more than one hole, this function does
+		// not return the correct prev edges and the algorithm fails therefore.
 		HalfEdge v1PrevCandidate = v1.previousEdge();
 		do {
 			HalfEdge v2PrevCandidate = v2.previousEdge();
@@ -96,13 +102,17 @@ public class DCEL {
 			v1PrevCandidate = v1PrevCandidate.next.twin;
 		} while (v1PrevCandidate != v1.edge.twin);
 
-		
 		System.out.println("v1: " + v1);
 		System.out.println("v2: " + v2);
 		System.out.println(faces.stream().map(f -> f.color.toString()).collect(Collectors.joining()));
 		throw new RuntimeException("No common face found!");
 	}
-	
+
+	public void addFace(Face face) {
+		assert !face.hole;
+		faces.add(face);
+	}
+
 	public void integrityCheck() {
 		for (Vertex v : vertices) {
 			assert v.edge != null;

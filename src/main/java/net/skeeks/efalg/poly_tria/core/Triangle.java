@@ -1,4 +1,7 @@
-package net.skeeks.efalg.poly_tria;
+// This is a personal academic project. Dear PVS-Studio, please check it.
+
+// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: http://www.viva64.com
+package net.skeeks.efalg.poly_tria.core;
 
 public class Triangle {
 	public Vertex p1;
@@ -16,6 +19,8 @@ public class Triangle {
 		return p1 + " <-> " + p2 + " <-> " + p3;
 	}
 
+	// equals and hashCode implemented for JUnit
+	
 	@Override
 	public int hashCode() {
 		final int prime = 31;

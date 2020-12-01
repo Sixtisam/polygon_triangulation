@@ -12,6 +12,14 @@
 		<maven.compiler.target>11</maven.compiler.target>
 	</properties>
 
+	<pluginRepositories>
+		<pluginRepository>
+			<id>pvsstudio-maven-repo</id>
+			<url>http://files.viva64.com/java/pvsstudio-maven-repository/</url>
+		</pluginRepository>
+	</pluginRepositories>
+
+
 	<build>
 		<plugins>
 			<plugin>
@@ -21,6 +29,17 @@
 			<plugin>
 				<artifactId>maven-failsafe-plugin</artifactId>
 				<version>2.22.2</version>
+			</plugin>
+			<plugin>
+				<groupId>com.pvsstudio</groupId>
+				<artifactId>pvsstudio-maven-plugin</artifactId>
+				<version>7.10.43221</version>
+				<configuration>
+					<analyzer>
+						<outputType>text</outputType>
+						<outputFile>pvs_analysis.txt</outputFile>
+					</analyzer>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>

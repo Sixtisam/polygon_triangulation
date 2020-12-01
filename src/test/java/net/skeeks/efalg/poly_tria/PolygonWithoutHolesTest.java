@@ -8,7 +8,12 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-public class PolygonWithoutHoles {
+import net.skeeks.efalg.poly_tria.core.Polygon;
+import net.skeeks.efalg.poly_tria.core.PolygonTriangulation;
+import net.skeeks.efalg.poly_tria.core.Triangle;
+import net.skeeks.efalg.poly_tria.core.Vertex;
+
+public class PolygonWithoutHolesTest {
 
 	/**
 	 * Test helper

@@ -1,4 +1,7 @@
-package net.skeeks.efalg.poly_tria;
+// This is a personal academic project. Dear PVS-Studio, please check it.
+
+// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: http://www.viva64.com
+package net.skeeks.efalg.poly_tria.core;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -6,13 +9,17 @@ import java.util.List;
 
 /**
  * 
- * Sweep line status for the 'make polygon y-monotone' algorithm
+ * Sweep line status for the 'make polygon y-monotone' algorithm.
+ * 
+ * - all vertices/events<br>
+ * - a doubly connected edge list representing the polygon<br>
+ * - active set of edges, ordered by x-coordinate (used to find edge left of a vertex)
  * 
  * @author Samuel Keusch <samuel.keusch@students.fhnw.ch>
  *
  */
 public class MakeMonotoneSweepLineStatus {
-	public final List<Vertex> events = new ArrayList<>();;
+	public final List<Vertex> events = new ArrayList<>();
 	public final DCEL dcel = new DCEL();
 	public final EdgeSearchTree edgeTree  = new EdgeSearchTree();
 
@@ -25,7 +32,7 @@ public class MakeMonotoneSweepLineStatus {
 		
 		// A polygon from the input file has initially only 1 face.
 		Face polygonFace = new Face(false);
-		dcel.faces.add(polygonFace);
+		dcel.addFace(polygonFace);
 		
 		HalfEdge prevEdge = null;
 		HalfEdge prevTwinEdge = null;

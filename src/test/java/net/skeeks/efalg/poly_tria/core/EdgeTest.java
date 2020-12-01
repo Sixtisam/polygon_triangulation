@@ -1,6 +1,6 @@
-package net.skeeks.efalg.poly_tria;
+package net.skeeks.efalg.poly_tria.core;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 

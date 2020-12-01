@@ -1,3 +1,6 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+
+// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: http://www.viva64.com
 package net.skeeks.efalg.poly_tria;
 
 import java.awt.Color;
@@ -23,6 +26,12 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
+
+import net.skeeks.efalg.poly_tria.core.Face;
+import net.skeeks.efalg.poly_tria.core.HalfEdge;
+import net.skeeks.efalg.poly_tria.core.Polygon;
+import net.skeeks.efalg.poly_tria.core.Triangle;
+import net.skeeks.efalg.poly_tria.core.Vertex;
 
 public class GeometryPainter {
 	private final JFrame frame = new JFrame("GraphDrawer");

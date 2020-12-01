@@ -4,6 +4,9 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 
+import net.skeeks.efalg.poly_tria.core.Polygon;
+import net.skeeks.efalg.poly_tria.core.Vertex;
+
 class PolygonTest {
 
 	@Test

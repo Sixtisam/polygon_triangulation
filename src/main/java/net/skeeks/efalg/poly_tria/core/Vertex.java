@@ -1,10 +1,21 @@
-package net.skeeks.efalg.poly_tria;
+// This is a personal academic project. Dear PVS-Studio, please check it.
 
+// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: http://www.viva64.com
+package net.skeeks.efalg.poly_tria.core;
+
+/**
+ * Represents a point in 2D coordinate system. Each vertex nows if prev vertex
+ * (counter-clockwise order), it HalfEdge pointing to the next vertex
+ * 
+ * @author Samuel Keusch <samuel.keusch@students.fhnw.ch>
+ *
+ */
 public class Vertex implements Comparable<Vertex> {
 	public int x;
 	public int y;
+
 	/**
-	 * Event type of this vertex
+	 * Event type of this vertex for the make monotone phase
 	 */
 	public VertexType type;
 
@@ -21,12 +32,13 @@ public class Vertex implements Comparable<Vertex> {
 	/**
 	 * For the triangulation Algorithm the chain type
 	 */
-	public ChainType chainType;
+	public ChainType triangulationChainType;
 
 	/**
 	 * prev vertex, used only for the triangulation process. Cannot used 'prev'
 	 * because if the vertices are reused (like in InteractiveTriangulationProgram)
-	 * the triangulation and make-monotone will interfere
+	 * the triangulation and make-monotone will interfere.
+	 * 
 	 */
 	public Vertex triangulationPrev;
 	/**
@@ -49,6 +61,10 @@ public class Vertex implements Comparable<Vertex> {
 		return triangulationEdge.to();
 	}
 
+	/**
+	 * Returns the previous edge of the original polygon.
+	 * <b>Caution</b>: If this vertex is connected by multiple edges, it may return an edge which is associated with a different face!
+	 */
 	public HalfEdge previousEdge() {
 		return prev.edge;
 	}
@@ -56,15 +72,6 @@ public class Vertex implements Comparable<Vertex> {
 	@Override
 	public String toString() {
 		return "[" + x + "/" + y + "] " + type;
-	}
-
-	/**
-	 * Returns true, if {@code this} lies left to the edge formed by connecting
-	 * {@code v1} and {@code v2}
-	 */
-	public boolean isLeft(Vertex v1, Vertex v2) {
-		int cross = (v2.x - v1.x) * (this.y - v1.y) - (this.x - v1.x) * (v2.y - v1.y);
-		return cross > 0;
 	}
 
 	/**

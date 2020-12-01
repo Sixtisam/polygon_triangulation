@@ -1,4 +1,4 @@
-package net.skeeks.efalg.poly_tria;
+package net.skeeks.efalg.poly_tria.core;
 
 import java.util.Arrays;
 

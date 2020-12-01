@@ -1,4 +1,7 @@
-package net.skeeks.efalg.poly_tria;
+// This is a personal academic project. Dear PVS-Studio, please check it.
+
+// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: http://www.viva64.com
+package net.skeeks.efalg.poly_tria.core;
 
 import java.awt.Color;
 import java.util.ArrayList;
@@ -14,8 +17,14 @@ public class Face {
 	 */
 	public HalfEdge edge;
 	
+	/**
+	 * Marks this face an being the area which encloses an hole.
+	 */
 	public boolean hole = false;
 	
+	/**
+	 * Color for coloring the drawn visualization
+	 */
 	public Color color;
 	
 	public static int i = 0;

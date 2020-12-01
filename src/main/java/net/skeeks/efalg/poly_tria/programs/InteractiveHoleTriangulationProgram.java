@@ -1,10 +1,21 @@
-package net.skeeks.efalg.poly_tria;
+// This is a personal academic project. Dear PVS-Studio, please check it.
+
+// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: http://www.viva64.com
+package net.skeeks.efalg.poly_tria.programs;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import net.skeeks.efalg.poly_tria.Edge;
+import net.skeeks.efalg.poly_tria.GeometryPainter;
+import net.skeeks.efalg.poly_tria.core.Face;
+import net.skeeks.efalg.poly_tria.core.Polygon;
+import net.skeeks.efalg.poly_tria.core.PolygonTriangulation;
+import net.skeeks.efalg.poly_tria.core.Triangle;
+import net.skeeks.efalg.poly_tria.core.Vertex;
 
 public class InteractiveHoleTriangulationProgram {
 
