@@ -60,7 +60,6 @@ public class InteractiveHoleTriangulationProgram {
 				painter.setPolygons(polygons.toArray(new Polygon[0]));
 				painter.setEdges(PolygonTriangulation.PROGRESS_EDGES.toArray(new Edge[0]));
 				painter.setTriangels(Collections.emptyList());
-				painter.setFaces(new Face[0]);
 				painter.setHelpText("Error occurred");
 			}
 		};

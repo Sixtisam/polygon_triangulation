@@ -102,6 +102,7 @@ public class PolygonTriangulation {
 		
 		// also add new edge to progress list
 		PROGRESS_EDGES.add(new Edge(v1, v2));
+		PROGRESS_EDGES.add(new Edge(v1, v3));
 	}
 
 	/**

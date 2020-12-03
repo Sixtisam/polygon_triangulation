@@ -10,7 +10,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import net.skeeks.efalg.poly_tria.Edge;
 import net.skeeks.efalg.poly_tria.GeometryPainter;
 import net.skeeks.efalg.poly_tria.core.Polygon;
 import net.skeeks.efalg.poly_tria.core.PolygonTriangulation;
@@ -65,6 +67,18 @@ public class PolygonTriangulationProgram {
 		painter.setTriangels(triangles);
 		painter.setPoints(polygons.stream().filter(Objects::nonNull).flatMap(polygon -> Arrays.stream(polygon.vertices))
 				.toArray(x -> new Vertex[x]));
+		AtomicInteger currProgress = new AtomicInteger(0);
+
+		painter.nextConsumer = () -> {
+			painter.setEdges(PolygonTriangulation.PROGRESS_EDGES.subList(0, currProgress.incrementAndGet())
+					.toArray(new Edge[0]));
+		};
+
+		painter.previousConsumer = () -> {
+			painter.setEdges(PolygonTriangulation.PROGRESS_EDGES.subList(0, currProgress.decrementAndGet())
+					.toArray(new Edge[0]));
+		};
+
 		painter.start();
 	}
 

@@ -10,6 +10,8 @@ import java.awt.FlowLayout;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -22,6 +24,7 @@ import java.util.function.BiConsumer;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -75,17 +78,14 @@ public class GeometryPainter {
 	};
 	public volatile Runnable spaceConsumer = () -> {
 	};
+	public volatile Runnable nextConsumer = () -> {
+	};
+	public volatile Runnable previousConsumer = () -> {
+	};
 
 	public void setPolygons(Polygon[] polygons) {
 		SwingUtilities.invokeLater(() -> {
 			canvas.polygons = polygons;
-			canvas.repaint();
-		});
-	}
-
-	public void setFaces(Face[] faces) {
-		SwingUtilities.invokeLater(() -> {
-			canvas.faces = faces;
 			canvas.repaint();
 		});
 	}
@@ -190,7 +190,6 @@ public class GeometryPainter {
 		private static final long serialVersionUID = 1L;
 
 		public volatile Polygon[] polygons = new Polygon[0];
-		public volatile Face[] faces = new Face[0];
 		public volatile Vertex[] points = new Vertex[0];
 		public volatile Edge[] edges = new Edge[0];
 		public volatile List<Triangle> triangles = new ArrayList<>();
@@ -204,9 +203,6 @@ public class GeometryPainter {
 			graphic2d.translate(BORDER, getHeight() - BORDER);
 			graphic2d.scale(SCALE, SCALE);
 
-			for (Face face : faces) {
-				drawFace(face, graphic2d);
-			}
 			for (Polygon polygon : polygons) {
 				int[] xPoints = new int[polygon.vertices.length];
 				int[] yPoints = new int[polygon.vertices.length];
@@ -219,13 +215,11 @@ public class GeometryPainter {
 				graphic2d.drawPolygon(xPoints, yPoints, xPoints.length);
 			}
 
-			Color c = new Color(0xa59d0191, true);
-			graphic2d.setColor(c);
-			for (Edge edge : edges) {
-				graphic2d.drawLine(edge.from.x, -edge.from.y, edge.to.x, -edge.to.y);
+			graphic2d.setColor(Color.RED);
+			for (Triangle t : triangles) {
+				drawTriangle(t, graphic2d);
 			}
 
-			graphic2d.setColor(Color.RED);
 			for (Vertex point : points) {
 				if (point == null)
 					continue;
@@ -234,11 +228,9 @@ public class GeometryPainter {
 				graphic2d.drawLine(point.x, -(point.y + 3), point.x, -(point.y - 3));
 				graphic2d.drawLine(point.x - 3, -point.y, point.x + 3, -(point.y));
 			}
-
-			graphic2d.setColor(Color.RED);
-
-			for (Triangle t : triangles) {
-				drawTriangle(t, graphic2d);
+			graphic2d.setColor(Color.YELLOW);
+			for (Edge edge : edges) {
+				graphic2d.drawLine(edge.from.x, -edge.from.y, edge.to.x, -edge.to.y);
 			}
 
 		}
@@ -266,11 +258,13 @@ public class GeometryPainter {
 		helpLabel.setText(text);
 	}
 
-	public class ControlPanel extends JPanel implements MouseMotionListener {
+	public class ControlPanel extends JPanel implements MouseMotionListener, ActionListener {
 		private static final long serialVersionUID = 1L;
 
 		private final JLabel xLabel = new JLabel("X");
 		private final JLabel yLabel = new JLabel("Y");
+		private final JButton nextButton = new JButton("Next");
+		private final JButton previousButton = new JButton("Previous");
 
 		public void init() {
 			setBackground(Color.LIGHT_GRAY);
@@ -278,6 +272,21 @@ public class GeometryPainter {
 			add(xLabel);
 			add(yLabel);
 			add(helpLabel);
+			add(nextButton);
+			add(previousButton);
+			nextButton.addActionListener(this);
+			nextButton.setActionCommand("next");
+			previousButton.addActionListener(this);
+			previousButton.setActionCommand("previous");
+		}
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			if (e.getActionCommand().equals("next")) {
+				nextConsumer.run();
+			} else if (e.getActionCommand().equals("previous")) {
+				previousConsumer.run();
+			}
 		}
 
 		/**
