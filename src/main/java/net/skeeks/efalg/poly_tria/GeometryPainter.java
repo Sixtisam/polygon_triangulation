@@ -82,6 +82,9 @@ public class GeometryPainter {
 	};
 	public volatile Runnable previousConsumer = () -> {
 	};
+	public volatile Runnable tabConsumer = () -> {
+		
+	};
 
 	public void setPolygons(Polygon[] polygons) {
 		SwingUtilities.invokeLater(() -> {
@@ -140,7 +143,9 @@ public class GeometryPainter {
 			if (e.getKeyCode() == KeyEvent.VK_SPACE) {
 				spaceConsumer.run();
 			}
-
+			if(e.getKeyCode() == KeyEvent.VK_TAB) {
+				tabConsumer.run();
+			}
 		}
 
 		@Override
