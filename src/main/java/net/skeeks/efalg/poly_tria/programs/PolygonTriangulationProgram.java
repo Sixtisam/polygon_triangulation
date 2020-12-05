@@ -13,7 +13,6 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import net.skeeks.efalg.poly_tria.Edge;
-import net.skeeks.efalg.poly_tria.GeometryPainter;
 import net.skeeks.efalg.poly_tria.core.Polygon;
 import net.skeeks.efalg.poly_tria.core.PolygonTriangulation;
 import net.skeeks.efalg.poly_tria.core.Triangle;
@@ -57,17 +56,25 @@ public class PolygonTriangulationProgram {
 			}
 		}
 
-		// Run the algorithm
+		GeometryPainter painter = new GeometryPainter();
+		AtomicInteger currProgress = new AtomicInteger(0);
+		try {
 		long start = System.nanoTime();
+		// Run the algorithm
 		List<Triangle> triangles = PolygonTriangulation.triangulate(polygons, holes);
 		System.out.println("Triangulation took " + ((System.nanoTime() - start) / 1_000_000) + "ms");
 		// Show visualization
-		GeometryPainter painter = new GeometryPainter();
-		painter.setPolygons(polygons.toArray(new Polygon[0]));
+		painter.setPolygons(polygons.toArray(new Polygon[0]), holes.toArray(new Polygon[0]));
 		painter.setTriangels(triangles);
 		painter.setPoints(polygons.stream().filter(Objects::nonNull).flatMap(polygon -> Arrays.stream(polygon.vertices))
 				.toArray(x -> new Vertex[x]));
-		AtomicInteger currProgress = new AtomicInteger(0);
+		} catch(Throwable e) {
+			e.printStackTrace();
+			painter.setPoints(polygons.stream().filter(Objects::nonNull).flatMap(polygon -> Arrays.stream(polygon.vertices))
+					.toArray(x -> new Vertex[x]));
+			System.out.println("Progress edges size: " + PolygonTriangulation.PROGRESS_EDGES.size());
+			painter.setPolygons(polygons.toArray(new Polygon[0]), holes.toArray(new Polygon[0]));
+		}
 
 		painter.nextConsumer = () -> {
 			painter.setEdges(PolygonTriangulation.PROGRESS_EDGES.subList(0, currProgress.incrementAndGet())

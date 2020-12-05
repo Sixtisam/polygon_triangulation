@@ -36,8 +36,8 @@
 				<version>7.10.43221</version>
 				<configuration>
 					<analyzer>
-						<outputType>text</outputType>
-						<outputFile>pvs_analysis.txt</outputFile>
+						<outputType>html</outputType>
+						<outputFile>pvs_analysis.html</outputFile>
 					</analyzer>
 				</configuration>
 			</plugin>
@@ -46,6 +46,16 @@
 	<!-- ... -->
 	<dependencies>
 		<!-- ... -->
+		<dependency>
+			<groupId>org.openjdk.jmh</groupId>
+			<artifactId>jmh-core</artifactId>
+			<version>1.19</version>
+		</dependency>
+		<dependency>
+			<groupId>org.openjdk.jmh</groupId>
+			<artifactId>jmh-generator-annprocess</artifactId>
+			<version>1.19</version>
+		</dependency>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-api</artifactId>

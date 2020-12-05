@@ -11,7 +11,7 @@ import java.util.List;
 import net.skeeks.efalg.poly_tria.Edge;
 
 /**
- * Implement a y-monotone polygon triangulation algorithm
+ * Implementation of a y-monotone polygon triangulation algorithm
  * @author Samuel Keusch <samuel.keusch@students.fhnw.ch>
  *
  */
@@ -35,7 +35,8 @@ public class PolygonTriangulation {
 
 		ArrayList<Triangle> triangles = new ArrayList<>();
 		// each polygon from the input is handled separately
-		for (Polygon polygon : polygons) {
+		for (int i = 0; i < polygons.size(); i++) {
+			Polygon polygon = polygons.get(i);
 			// -----------------------------------------------------
 			// 1. Split the polygon up into monotone polygons
 			// -----------------------------------------------------
@@ -69,8 +70,8 @@ public class PolygonTriangulation {
 			// -----------------------------------------------------
 			// 2. Triangulate those y-monotone polygons
 			// -----------------------------------------------------
-			for (int i = 0; i < sls.dcel.faces.size(); i++) {
-				triangulateMonotonePolygon(sls.dcel.faces.get(i), triangles);
+			for (int j = 0; j < sls.dcel.faces.size(); j++) {
+				triangulateMonotonePolygon(sls.dcel.faces.get(j), triangles);
 			}
 		}
 		return triangles;
@@ -79,6 +80,7 @@ public class PolygonTriangulation {
 	/**
 	 * Each hole must be inside a polygon. This method finds that polygon and
 	 * assigns that hole to that polygon.
+	 * 
 	 */
 	public static void mapHolesToPolygons(List<Polygon> polygons, List<Polygon> holes) {
 		for (Polygon hole : holes) {
@@ -88,169 +90,6 @@ public class PolygonTriangulation {
 					break;
 				}
 			}
-		}
-	}
-
-	/**
-	 * Adds triangle to the triangulation results
-	 */
-	public static void addTriangulationConnection(Vertex v1, Vertex v2, Vertex v3, List<Triangle> triangles) {
-		assert v1 != null;
-		assert v2 != null;
-		assert v3 != null;
-		triangles.add(new Triangle(v1, v2, v3));
-		
-		// also add new edge to progress list
-		PROGRESS_EDGES.add(new Edge(v1, v2));
-		PROGRESS_EDGES.add(new Edge(v1, v3));
-	}
-
-	/**
-	 * Triangulates a y-monotone polygon
-	 */
-	public static void triangulateMonotonePolygon(Face face, List<Triangle> triangles) {
-		Vertex[] vertices = getYMonotoneVertices(face);
-		assert vertices.length >= 3;
-		if (vertices.length == 3) {
-			triangles.add(new Triangle(vertices[0], vertices[1], vertices[2]));
-			return; // triangles are already triangulated
-		}
-		assert vertices.length > 3; // just to be sure
-
-		Deque<Vertex> stack = new ArrayDeque<>();
-		stack.push(vertices[0]);
-		stack.push(vertices[1]);
-		// Start at 3 vertex as for the first two, there is nothing to triangulate
-		for (int i = 2; i < vertices.length - 1; i++) {
-			Vertex curr = vertices[i];
-
-			if (stack.peek().triangulationChainType != curr.triangulationChainType) {
-				// Different chains -> Connect all vertices on stack (always possible)
-
-				Vertex prevPopped = null;
-				do {
-					Vertex popped = stack.pop();
-					if (prevPopped != null) {
-						addTriangulationConnection(curr, popped, prevPopped, triangles);
-					}
-					prevPopped = popped;
-				} while (stack.size() > 1);
-				Vertex v1 = stack.pop(); // last vertex on stack must be popped but not connected
-				if (prevPopped != null) {
-					addTriangulationConnection(curr, v1, prevPopped, triangles);
-				}
-				assert i - 1 >= 1;
-				stack.push(vertices[i - 1]);
-				stack.push(curr);
-			} else {
-				// Same chain -> Connect to vertices on same chain until its not longer possible
-				Vertex prevPopped = stack.pop(); // already connected because on same chainw
-				Vertex popped = null;
-				while (!stack.isEmpty()) {
-					popped = stack.pop();
-					// only draw connections while they are inside the polygon
-					if (connectionLiesInside(curr, prevPopped, popped)) {
-						addTriangulationConnection(curr, popped, prevPopped, triangles);
-						// dcel.insertEdge(curr, popped);
-						prevPopped = popped;
-					} else {
-						stack.push(popped);
-						popped = prevPopped;
-						break; // stop on first connection that would be outside the polygon
-					}
-				}
-				stack.push(popped); // last popped vertex must be pushed again
-				stack.push(curr); // also push current vertex
-			}
-		}
-
-		// Pop all remaining vertices from stack, draw diagonal to all of them except
-		// last and first one
-		Vertex prevPopped = stack.pop();
-		while (stack.size() > 1) {
-			Vertex popped = stack.pop();
-			addTriangulationConnection(vertices[vertices.length - 1], popped, prevPopped, triangles);
-			prevPopped = popped;
-		}
-		Vertex lastPopped = stack.pop();
-		addTriangulationConnection(vertices[vertices.length - 1], lastPopped, prevPopped, triangles);
-	}
-
-	/**
-	 * Return all vertices of the passed face
-	 */
-	public static Vertex[] getYMonotoneVertices(Face face) {
-		ArrayList<Vertex> tmpVertices = new ArrayList<>();
-
-		Vertex max = null; // vertex that will later become ChainType.START
-		HalfEdge maxEdge = null;
-		// First, create a doubly connected list (since the 'twin' half edges now form
-		// other faces we cannot use them, but we need them)
-		{
-			HalfEdge currEdge = face.edge;
-			Vertex prev = null;
-			do {
-				Vertex v = currEdge.from;
-//				v.triangulationPrev = prev; // must be overwritten
-//				v.triangulationEdge = currEdge; // must be overwritten
-				tmpVertices.add(v);
-				if (max == null || v.compareTo(max) < 0) {
-					max = v;
-					maxEdge = currEdge;
-				}
-				prev = v;
-				currEdge = currEdge.next;
-			} while (currEdge != face.edge);
-//			face.edge.from.triangulationPrev = prev; // also set prev vertex of first vertex
-//			face.edge.from.triangulationEdge = face.edge; // must be overwritten
-//			// integrity check
-//			for (Vertex v : tmpVertices) {
-//				assert v.triangulationPrev != null;
-//			}
-		}
-
-		// list that will be returned
-		Vertex[] vertices = new Vertex[tmpVertices.size()];
-		// init max vertex
-		max.triangulationChainType = ChainType.START;
-		vertices[0] = max;
-
-		// traverse all other vertices
-		HalfEdge currNext = maxEdge.next;
-		HalfEdge currPrev = maxEdge.prev;
-		int i = 1;
-		while (currNext != currPrev) {
-			if (currNext.from.compareTo(currPrev.from) < 0) {
-				// currNext is higher
-				currNext.from.triangulationChainType = ChainType.LEFT;
-				vertices[i++] = currNext.from;
-				currNext = currNext.next;
-			} else {
-				// currPrev is higher
-				currPrev.from.triangulationChainType = ChainType.RIGHT;
-				vertices[i++] = currPrev.from;
-				currPrev = currPrev.prev;
-			}
-			assert vertices[i - 2].compareTo(vertices[i - 1]) < 0;
-		}
-		assert currNext == currPrev;
-		assert i + 1 == vertices.length;
-		vertices[i] = currNext.from;
-		assert vertices[i - 1].compareTo(vertices[i]) < 0;
-		return vertices;
-	}
-
-	public static boolean connectionLiesInside(Vertex from, Vertex between, Vertex to) {
-		// Kreuzprodukt zwischen ziel und vertex dazwischen
-		int v1x = from.x - between.x;
-		int v1y = from.y - between.y;
-		int v2x = to.x - between.x;
-		int v2y = to.y - between.y;
-		long cross = (v1x * v2y) - (v1y * v2x);
-		if (from.triangulationChainType == ChainType.LEFT) {
-			return cross > 0;
-		} else {
-			return cross < 0;
 		}
 	}
 
@@ -365,5 +204,168 @@ public class PolygonTriangulation {
 		} else {
 			return false;
 		}
+	}
+	
+	// -----------------------------------------------------
+	// 2. Triangulate those y-monotone polygons
+	// -----------------------------------------------------
+	
+	/**
+	 * Stack instance of 2. phase
+	 */
+	protected static final Deque<Vertex> TRIANGULATION_STACK = new ArrayDeque<>();
+
+	/**
+	 * Triangulates a y-monotone polygon
+	 */
+	public static void triangulateMonotonePolygon(Face face, List<Triangle> triangles) {
+		Vertex[] vertices = getYMonotoneVertices(face);
+		assert vertices.length >= 3;
+		if (vertices.length == 3) {
+			triangles.add(new Triangle(vertices[0], vertices[1], vertices[2]));
+			return; // triangles are already triangulated
+		}
+		assert vertices.length > 3; // just to be sure
+
+		assert TRIANGULATION_STACK.isEmpty(); // stack is reused 
+		TRIANGULATION_STACK.push(vertices[0]);
+		TRIANGULATION_STACK.push(vertices[1]);
+		// Start at 3 vertex as for the first two, there is nothing to triangulate
+		for (int i = 2; i < vertices.length - 1; i++) {
+			Vertex curr = vertices[i];
+
+			if (TRIANGULATION_STACK.peek().triangulationChainType != curr.triangulationChainType) {
+				// Different chains -> Connect all vertices on stack (always possible)
+
+				Vertex prevPopped = null;
+				do {
+					Vertex popped = TRIANGULATION_STACK.pop();
+					if (prevPopped != null) {
+						addTriangulationConnection(curr, popped, prevPopped, triangles);
+					}
+					prevPopped = popped;
+				} while (TRIANGULATION_STACK.size() > 1);
+				Vertex v1 = TRIANGULATION_STACK.pop(); // last vertex on stack must be popped but not connected
+				if (prevPopped != null) {
+					addTriangulationConnection(curr, v1, prevPopped, triangles);
+				}
+				assert i - 1 >= 1;
+				TRIANGULATION_STACK.push(vertices[i - 1]);
+				TRIANGULATION_STACK.push(curr);
+			} else {
+				// Same chain -> Connect to vertices on same chain until its not longer possible
+				Vertex prevPopped = TRIANGULATION_STACK.pop(); // already connected because on same chainw
+				Vertex popped = null;
+				while (!TRIANGULATION_STACK.isEmpty()) {
+					popped = TRIANGULATION_STACK.pop();
+					// only draw connections while they are inside the polygon
+					if (connectionLiesInside(curr, prevPopped, popped)) {
+						addTriangulationConnection(curr, popped, prevPopped, triangles);
+						// dcel.insertEdge(curr, popped);
+						prevPopped = popped;
+					} else {
+						TRIANGULATION_STACK.push(popped);
+						popped = prevPopped;
+						break; // stop on first connection that would be outside the polygon
+					}
+				}
+				TRIANGULATION_STACK.push(popped); // last popped vertex must be pushed again
+				TRIANGULATION_STACK.push(curr); // also push current vertex
+			}
+		}
+
+		// Pop all remaining vertices from stack, draw diagonal to all of them except
+		// last and first one
+		Vertex prevPopped = TRIANGULATION_STACK.pop();
+		while (TRIANGULATION_STACK.size() > 1) {
+			Vertex popped = TRIANGULATION_STACK.pop();
+			addTriangulationConnection(vertices[vertices.length - 1], popped, prevPopped, triangles);
+			prevPopped = popped;
+		}
+		Vertex lastPopped = TRIANGULATION_STACK.pop();
+		addTriangulationConnection(vertices[vertices.length - 1], lastPopped, prevPopped, triangles);
+		assert TRIANGULATION_STACK.isEmpty();
+	}
+
+	/**
+	 * Returns an array of vertices of the passed face.
+	 * Also prepares the vertex for the 2. algorithm phase
+	 */
+	public static Vertex[] getYMonotoneVertices(Face face) {
+		ArrayList<Vertex> tmpVertices = new ArrayList<>();
+
+		// First, search the highest vertex
+		Vertex max = null; // vertex that will later become ChainType.START
+		HalfEdge maxEdge = null;
+		// First, create a doubly connected list (since the 'twin' half edges now form
+		// other faces we cannot use them, but we need them)
+		{
+			HalfEdge currEdge = face.edge;
+			do {
+				Vertex v = currEdge.from;
+				tmpVertices.add(v);
+				if (max == null || v.compareTo(max) < 0) {
+					max = v;
+					maxEdge = currEdge;
+				}
+				currEdge = currEdge.next;
+			} while (currEdge != face.edge);
+		}
+
+		// list that will be returned
+		Vertex[] vertices = new Vertex[tmpVertices.size()];
+		// init max vertex
+		max.triangulationChainType = ChainType.START;
+		vertices[0] = max;
+
+		// traverse all other vertices
+		HalfEdge currNext = maxEdge.next;
+		HalfEdge currPrev = maxEdge.prev;
+		int i = 1;
+		while (currNext != currPrev) {
+			if (currNext.from.compareTo(currPrev.from) < 0) {
+				// currNext is higher
+				currNext.from.triangulationChainType = ChainType.LEFT;
+				vertices[i++] = currNext.from;
+				currNext = currNext.next;
+			} else {
+				// currPrev is higher
+				currPrev.from.triangulationChainType = ChainType.RIGHT;
+				vertices[i++] = currPrev.from;
+				currPrev = currPrev.prev;
+			}
+			assert vertices[i - 2].compareTo(vertices[i - 1]) < 0;
+		}
+		assert currNext == currPrev;
+		assert i + 1 == vertices.length;
+		vertices[i] = currNext.from;
+		assert vertices[i - 1].compareTo(vertices[i]) < 0;
+		return vertices;
+	}
+
+	public static boolean connectionLiesInside(Vertex from, Vertex between, Vertex to) {
+		// Kreuzprodukt zwischen ziel und vertex dazwischen
+		int v1x = from.x - between.x;
+		int v1y = from.y - between.y;
+		int v2x = to.x - between.x;
+		int v2y = to.y - between.y;
+		long cross = (v1x * v2y) - (v1y * v2x);
+		if (from.triangulationChainType == ChainType.LEFT) {
+			return cross > 0;
+		} else {
+			return cross < 0;
+		}
+	}
+	
+	/**
+	 * Adds triangle to the triangulation results
+	 */
+	public static void addTriangulationConnection(Vertex v1, Vertex v2, Vertex v3, List<Triangle> triangles) {
+		assert v1 != null;
+		assert v2 != null;
+		assert v3 != null;
+		triangles.add(new Triangle(v1, v2, v3));
+		
+		// dont add yellow edges because it does not work accurately
 	}
 }

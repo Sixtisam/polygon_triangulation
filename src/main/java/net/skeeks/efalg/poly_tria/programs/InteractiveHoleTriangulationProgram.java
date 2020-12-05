@@ -7,11 +7,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import net.skeeks.efalg.poly_tria.Edge;
-import net.skeeks.efalg.poly_tria.GeometryPainter;
-import net.skeeks.efalg.poly_tria.core.Face;
 import net.skeeks.efalg.poly_tria.core.Polygon;
 import net.skeeks.efalg.poly_tria.core.PolygonTriangulation;
 import net.skeeks.efalg.poly_tria.core.Triangle;
@@ -22,91 +21,117 @@ public class InteractiveHoleTriangulationProgram {
 	public static void main(String[] args) {
 
 		GeometryPainter painter = new GeometryPainter();
+		AtomicBoolean holemode = new AtomicBoolean(false);
+		AtomicInteger currHoleIndex = new AtomicInteger(-1);
+		AtomicInteger currPolyIndex = new AtomicInteger(0);
 
 		List<List<Vertex>> vholes = new ArrayList<>();
-		{
-			List<Vertex> vertices = new ArrayList<>();
-			vertices.add(new Vertex(189, 85));
-			vertices.add(new Vertex(200, 150));
-			vertices.add(new Vertex(300, 120));
-			vertices.add(new Vertex(400, 102));
-			vertices.add(new Vertex(220, 110));
-			vholes.add(vertices);
-		}
-
-		int[] currentIndex = new int[] { 0 };
+		List<List<Vertex>> vpolygons = new ArrayList<>();
+		vpolygons.add(new ArrayList<>());
 
 		Runnable refresh = () -> {
-			Polygon p = new Polygon(
-					new Vertex[] { new Vertex(50, 50), new Vertex(300, 10), new Vertex(600, 50), new Vertex(700, 150),
-							new Vertex(600, 300), new Vertex(300, 320), new Vertex(50, 300), new Vertex(10, 150) });
-			List<Polygon> holes = vholes.stream().map(l -> new Polygon(l.toArray(new Vertex[0])))
-					.collect(Collectors.toList());
-			List<Polygon> polygons = new ArrayList<>();
-			polygons.add(p);
-			polygons.addAll(holes);
-			try {
-				List<Triangle> triangles = PolygonTriangulation.triangulate(Collections.singletonList(p), holes);
+			List<Polygon> holes = vholes.stream().filter(h -> h.size() > 2)
+					.map(l -> new Polygon(l.toArray(new Vertex[0]))).collect(Collectors.toList());
+			List<Polygon> polygons = vpolygons.stream().filter(h -> h.size() > 2)
+					.map(l -> new Polygon(l.toArray(new Vertex[0]))).collect(Collectors.toList());
 
-				painter.setPolygons(polygons.toArray(new Polygon[0]));
+			try {
+
+				List<Triangle> triangles = PolygonTriangulation.triangulate(polygons, holes);
+
+				painter.setPolygons(polygons.toArray(new Polygon[0]), holes.toArray(new Polygon[0]));
 				painter.setTriangels(triangles);
-				painter.setEdges(PolygonTriangulation.PROGRESS_EDGES.toArray(new Edge[0]));
 				System.out.println(
 						"----------------------------------------------------------------------------------------");
-				printJavaTestcase(p, holes, triangles);
-				painter.setHelpText("Success");
+				printJavaTestcase(polygons, holes, triangles);
 			} catch (Throwable t) {
 				t.printStackTrace();
-				painter.setPolygons(polygons.toArray(new Polygon[0]));
-				painter.setEdges(PolygonTriangulation.PROGRESS_EDGES.toArray(new Edge[0]));
+				painter.setPolygons(polygons.toArray(new Polygon[0]), holes.toArray(new Polygon[0]));
 				painter.setTriangels(Collections.emptyList());
-				painter.setHelpText("Error occurred");
+				painter.setHelpText("Errror " + painter.getHelpText());
 			}
 		};
 
 		refresh.run();
 
 		painter.mouseLeftClickConsumer = (x, y) -> {
-			vholes.get(currentIndex[0]).add(new Vertex(x, y));
+			if (holemode.get()) {
+				vholes.get(currHoleIndex.get()).add(new Vertex(x, y));
+			} else {
+				vpolygons.get(currPolyIndex.get()).add(new Vertex(x, y));
+			}
 			refresh.run();
 		};
 
 		painter.mouseShiftMoveConsumer = (x, y) -> {
-			vholes.get(currentIndex[0]).get(vholes.get(currentIndex[0]).size() - 1).x = x;
-			vholes.get(currentIndex[0]).get(vholes.get(currentIndex[0]).size() - 1).y = y;
+			if (holemode.get()) {
+				vholes.get(currHoleIndex.get()).get(vholes.get(currHoleIndex.get()).size() - 1).x = x;
+				vholes.get(currHoleIndex.get()).get(vholes.get(currHoleIndex.get()).size() - 1).y = y;
+			} else {
+				vpolygons.get(currPolyIndex.get()).get(vpolygons.get(currPolyIndex.get()).size() - 1).x = x;
+				vpolygons.get(currPolyIndex.get()).get(vpolygons.get(currPolyIndex.get()).size() - 1).y = y;
+			}
 			refresh.run();
 		};
 
 		painter.mouseRightClickConsumer = (x, y) -> {
 			vholes.clear();
-			currentIndex[0] = 0;
-			vholes.add(new ArrayList<>());
+			vpolygons.clear();
+			currHoleIndex.set(-1);
+			currPolyIndex.set(0);
+			vpolygons.add(new ArrayList<>());
+			holemode.set(false);
+			painter.setHelpText("Polygon Mode");
 			refresh.run();
 		};
 
 		painter.spaceConsumer = () -> {
-			currentIndex[0]++;
-			vholes.add(new ArrayList<>());
+			if (holemode.get()) {
+				currHoleIndex.incrementAndGet();
+				vholes.add(new ArrayList<>());
+			} else {
+				currPolyIndex.incrementAndGet();
+				vpolygons.add(new ArrayList<>());
+			}
+		};
+
+		painter.nConsumer = () -> {
+			if (holemode.get()) {
+				holemode.set(false);
+				currPolyIndex.incrementAndGet();
+				vpolygons.add(new ArrayList<>());
+				painter.setHelpText("Polygon Mode");
+			} else {
+				holemode.set(true);
+				currHoleIndex.incrementAndGet();
+				vholes.add(new ArrayList<>());
+				painter.setHelpText("Hole Mode");
+			}
 		};
 
 		painter.start();
 	}
 
-	static void printJavaTestcase(Polygon polygon, List<Polygon> holes, List<Triangle> triangles) {
+	static void printJavaTestcase(List<Polygon> polygons, List<Polygon> holes, List<Triangle> triangles) {
 		System.out.println("void testX(){");
-		System.out.print("Polygon polygon = ");
-		printJavaCode(polygon);
+		System.out.println("List<Polygon> polygons = new ArrayList<>();");
+		printPolygonList("polygons", polygons);
 		System.out.println("List<Polygon> holes = new ArrayList<>();");
-		holes.forEach(hole -> {
-			System.out.print("holes.add(");
-			System.out.println("new Polygon(new Vertex[]{");
-			System.out.println(Arrays.stream(polygon.vertices).map(v -> "new Vertex(" + v.x + ", " + v.y + ")")
-					.collect(Collectors.joining(", ")));
-			System.out.print("));");
-		});
+		printPolygonList("holes", holes);
 		printTriangles(triangles);
-		System.out.println("test(polygon, hole, triangles);");
+
+		System.out.println("test(polygons, holes, triangles);");
 		System.out.println("}");
+	}
+
+	static void printPolygonList(String listVar, List<Polygon> polygons) {
+		polygons.forEach(p -> {
+			System.out.print(listVar + ".add(new Polygon(new Vertex[]{");
+			System.out.print(Arrays.stream(p.vertices).map(v -> "new Vertex(" + v.x + "," + v.y + ")")
+					.collect(Collectors.joining(",")));
+			System.out.println("}));");
+		});
+
 	}
 
 	static void printTriangles(List<Triangle> triangles) {
@@ -115,13 +140,6 @@ public class InteractiveHoleTriangulationProgram {
 				.map(triangle -> "new Triangle(new Vertex(" + triangle.p1.x + ", " + triangle.p1.y + "), new Vertex("
 						+ triangle.p2.x + ", " + triangle.p2.y + "), new Vertex(" + triangle.p3.x + ", " + triangle.p3.y
 						+ "))")
-				.collect(Collectors.joining(", ")));
-		System.out.println("});");
-	}
-
-	static void printJavaCode(Polygon polygon) {
-		System.out.println("new Polygon(new Vertex[]{");
-		System.out.println(Arrays.stream(polygon.vertices).map(v -> "new Vertex(" + v.x + ", " + v.y + ")")
 				.collect(Collectors.joining(", ")));
 		System.out.println("});");
 	}

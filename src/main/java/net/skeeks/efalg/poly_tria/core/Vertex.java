@@ -55,13 +55,6 @@ public class Vertex implements Comparable<Vertex> {
 	}
 
 	/**
-	 * Returns the next vertex (counter-clockwise order)
-	 */
-	public Vertex triangulationNext() {
-		return triangulationEdge.to();
-	}
-
-	/**
 	 * Returns the previous edge of the original polygon.
 	 * <b>Caution</b>: If this vertex is connected by multiple edges, it may return an edge which is associated with a different face!
 	 */

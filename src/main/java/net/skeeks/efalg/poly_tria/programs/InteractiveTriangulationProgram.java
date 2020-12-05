@@ -8,7 +8,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import net.skeeks.efalg.poly_tria.GeometryPainter;
 import net.skeeks.efalg.poly_tria.core.Polygon;
 import net.skeeks.efalg.poly_tria.core.PolygonTriangulation;
 import net.skeeks.efalg.poly_tria.core.Triangle;
@@ -28,14 +27,14 @@ public class InteractiveTriangulationProgram {
 				List<Triangle> triangles = PolygonTriangulation.triangulate(Collections.singletonList(p),
 						Collections.emptyList());
 				painter.setTriangels(triangles);
-				painter.setPolygons(new Polygon[0]);
+				painter.setPolygons(new Polygon[0], new Polygon[0]);
 				painter.setHelpText("Success");
 				
 //				printJavaCode(p);
 //				printTriangles(triangles);
 			} catch (Throwable t) {
 				t.printStackTrace();
-				painter.setPolygons(new Polygon[] { p });
+				painter.setPolygons(new Polygon[] { p }, new Polygon[0]);
 				painter.setTriangels(Collections.emptyList());
 				painter.setHelpText("Error occurred");
 			}

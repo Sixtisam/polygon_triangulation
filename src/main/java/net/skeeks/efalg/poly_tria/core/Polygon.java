@@ -1,12 +1,11 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+
+// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: http://www.viva64.com
 package net.skeeks.efalg.poly_tria.core;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
-
-//This is a personal academic project. Dear PVS-Studio, please check it.
-
-//PVS-Studio Static Code Analyzer for C, C++, C#, and Java: http://www.viva64.com
 
 /**
  * Represents a planar polygon
