@@ -97,7 +97,7 @@ public class GeometryPainter {
 		});
 	}
 
-	public void setTriangels(List<Triangle> triangles) {
+	public void setTriangles(List<Triangle> triangles) {
 		SwingUtilities.invokeLater(() -> {
 			canvas.triangles = triangles;
 			canvas.repaint();

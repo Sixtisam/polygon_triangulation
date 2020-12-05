@@ -19,7 +19,6 @@ class MakeMonotoneSweepLineStatusTest {
 		int count = sls.init(p);
 		assertEquals(1, count);
 
-		assertEquals(1, sls.dcel.faces.size());
 		assertEquals(5, sls.events.length);
 
 		HalfEdge e = sls.events[0].edge;

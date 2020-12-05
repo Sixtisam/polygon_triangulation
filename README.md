@@ -3,7 +3,7 @@
 
 ## Ausführbare Programme
 
-`PolygonTriangulationProgram` liest die Datei `polygon.in` ein und zeigt in einem `JFrame` die Triangulierung all dieser Polygone an.
+**`PolygonTriangulationProgram`** liest die Datei `polygon.in` ein und zeigt in einem `JFrame` die Triangulierung all dieser Polygone an.
 Mit den Buttons `Next` und `Previous` kann nachvollzogen werden, welche Verbindungskanten eingefügt wurden (+ Reihenfolge). Diese Kanten werden `gelb` dargestellt. Damit lassen sich nur die eingefügten Kanten aus der 1. Phase des Algorithmus anzeigen, da dies für die 2. Phase nicht zuverlässig angezeigt werden kann.
 Auch die Kategorien der einzelnen Knoten wird mittels Kreuzen dargestellt:
 * Start-Vertex: CYAN
@@ -13,7 +13,7 @@ Auch die Kategorien der einzelnen Knoten wird mittels Kreuzen dargestellt:
 * Regular-Vertex: DARK_GREY
 
 
-`InteractiveHoleTriangulationProgram` bietet die Möglichkeit, selbst beliebige Polygon und Löcher zu zeichnen.
+**`InteractiveHoleTriangulationProgram`** bietet die Möglichkeit, selbst beliebige Polygon und Löcher zu zeichnen.
 Initial lässt sich ein Polygon zeichen (Gegenuhrzeigersinn beachten).
 * Mit `Left Click`setzt man einen neuen Knoten
 * Mit `Shift+Mousemove`` kann man den zuletzt gesetzten Knoten verschieben
@@ -24,11 +24,12 @@ Initial lässt sich ein Polygon zeichen (Gegenuhrzeigersinn beachten).
 
 Die Triangulation wird laufen berechnet und angezeigt.
 Während des Zeichnens kann es vorkommen, dass ein Polygon oder Loch kurzzeigt ungültig wird (kreuzende Kanten, überlagernde Polygone). Je nach Konstellation endet dies in einer Endlosschlaufe, worauf das Programm neu gestartet werden muss.
-
 Bei jedem Neuberechnen wird in der Konsole Java-Code für einen Unit-Test ausgegeben.
 
+In **ShowJUnitPolygonProgram** können mittels Copy-Paste die Polygons/Löcher aus den JUnit Tests eingefügt und angezeigt werden.
+
 ## Kurzbeschrieb Algorithmus
-Mein Algorithmus ist ein wenig anders herausgekommen als die Trapezidee von Ihnen. Ich habe mich dabei vor allem an den Erklärungen von Mark de Berg in seinem Buch ["Computation Geometry"](https://archive.org/details/computationalgeo00berg) orientiert.
+Mein Algorithmus ist ein wenig anders herausgekommen als die Trapezidee von Ihnen. Ich habe mich dabei vor allem an den Erklärungen von Mark de Berg in seinem Buch ["Computational Geometry"](https://archive.org/details/computationalgeo00berg) orientiert.
 
 Der Algorithmus besteht aus 2 Phasen: In der ersten Phase wird das Polygon (inkl. den Löchern) in y-monotone Polygon unterteilt. Kurz gesagt heisst das ich unterteil so, dass es keine Split- oder/und Merge-Vertices mehr gibt. Dies wird damit erreicht, dass ein Split-Vertex immer zum nächstoberen Knoten verbunden wird, der die gleiche Kante als linker Nachbar hat.
 Merge-Vertex müssen grundsätzlich gleich behandelt werden (aber auf dem Kopf), jedoch werden diese nachträglich verbunden, da man zum Zeitpunkt der Behandeln des Merge-Vertex die Vertices unterhalb noch nicht kennt/behandelt hat.
@@ -92,16 +93,69 @@ v=Anzahl Knoten des Polygons und der dazugehörigen Löcher
 - Das Sortieren in `MakeMonotoneSweepLineStatus.init` dauert `O(v log v)`
 - Das Suchen der nächst-linken Kanten über das Tree-Set ist `O(log n)` (Rot-Schwarz-Baum von TreeMap). Auch das Einfügen ist `O(log n)`
 	- Deshalb dauert das Abhandeln eines Events/Vertex nur `O(log v)`
-- Das Einfügen einer Verbindungskante kann bis zu `O(v)` dauern (wenn keine neue Fläche entstanden ist werden alle Vertices aktualisiert). Dies betrifft aber nur beim ersten Mal pro Polygon `v` Kanten. Durchschnittlich gesehen sind hier wohl nur `O(log v)` Kanten betroffen, da je weiter unten die Sweep Line liegt, die Kantenanzahl sinkt.
-- Das Triangulieren der y-monotone Teilpolygon dauert lineare Zeit, d.h. schlussendlich `O(v)` für das Triangulieren eines ganzen Polygons (2. Phase des Algorithmus)
+- Das Einfügen einer Verbindungskante kann bis zu `O(v)` dauert konstante Zeit. Es müssen nur 2 Halb-Kanten für die neue Verbindung erstellt werden.
 
 Fazit: Der Algorithmus braucht ca. `O(v log v)` um ein einzelne Polygon (inkl. Löcher) zu triangulieren.
 
+### Analyse mit VisualVM CPU Time
+
+Die Analyse mit VisualVM bein einem grossen Polygon war sehr hilfreich. Ich konnte meinen Algorithmus stark optimieren.
+Vor der Optimierung benötigte er für 100'000 Knoten ca. 15s, danach nur noch eine halbe Sekunde.
+
+In einem Polygon von einer grösse mit 1 Mio. Knoten habe ich nun folgende Analyseresultate bekommen:
+
+![alt text](VisualVM_Messung_1Mio.PNG "Messung")
+
+Interessant ist hier, das praktisch alle Methoden, die häufig aufgerufen werden bzw. viel Zeit benötigen, entweder vom initialen Sortieren der Knoten stammt oder vom Einfügen/Suchen im `EdgeSearchTree`.
+
+Diese hohe Zeit für den `EdgeSearchTree` ist auch nicht allzu verwunderlich, denn die horizontale Struktur des Graphes bedeutet das sehr viele Edges gleichzeit in diesem Tree sind und die Suchzeit dementsprechend steigt.
+
+### Benchmark
+
+Für den Benchmark habe ich die Klasse `PolygonGenerator` erstellt. Diese erzeugt ein Polygon mit einer gewissen Anzahl Knoten. Die erste Hälfte der Knoten liegt unterhalb des zweiten Hälfte. Jeder Knoten hat einen Raum von 100x und 400y zu Verfügung, wo er sich zufällig eine Position sucht. So entstehen die verschiedenen Arten von Knoten. Bei einer Grösse von 5 Mio. Knoten gibt es zum Beispiel ungefähr 1.5Mio Split und Merge Knoten.
+
+Der Benchmark testet ein solches Polygon mit 3 unterschiedlichen Grössen (Anmerkung: Für jede Grösse ist zwar das Schema gleich, die einzelnen Knoten sind aber nicht an selber Stelle):
+- 1 Million Knoten
+- 2 Millionen Knoten
+- 5 Millionen Knoten 
+
+**Resultate**
+
+Die Laufzeit sollte ungefähr `O(n log(n)` betragen, wobei `n` für die Anzahl Knoten steht.
+
+| Knoten  | Laufzeit    | Faktor      |
+|---------|-------------|-------------|
+| 100000  | 500000      |             |
+| 1000000 | 6000000     | 12          |
+| 2000000 | 12602059.99 | 2.100343332 |
+| 5000000 | 33494850.02 | 2.657886889 |
+
+Mit den Resultate des Benchmarks kann nun verglichen werden, ob der Faktor ungefähr dem erwarteten Faktor entspricht.
+
+| Benchmark                                     | Scoe      | Unit  | Faktor      | Erwarteter Faktor |
+|-----------------------------------------------|-----------|-------|-------------|-------------------|
+| TriangulationBenchmark.triangulation100_000   | 133.485   | ms/op |             |                   |
+| TriangulationBenchmark.triangulation1_000_000 | 2322.06   | ms/op | 17.39566243 | 12                |
+| TriangulationBenchmark.triangulation2_000_000 | 5100.51   | ms/op | 2.196545309 | 2.100343332       |
+| TriangulationBenchmark.triangulation5_000_000 | 14643.319 | ms/op | 2.870951924 | 2.657886889       |
+
+Die Faktoren sind zwar leicht darüber, aber man sieht das der Algorithmus ungefähr in dieser Grösserordnung skaliert.
+Die Faktor von 100'000 auf 1'000'000 Knoten lässt sich wahrscheinlich dadurch erklären, dass bei 100'000 Knoten der L1,L2,L3 Cache noch eine grössere Auswirkung haben (bzw. beim 1Mio Knoten der Cache nicht mehr genug gross ist).
+
 ### Speicherverbrauch
 
-Für das Einfügen von Verbindungskanten werden jeweils bis zu 3 neue Objekte generiert:
--  2x HalfEdge
-- 1x Face
+Während des Programmieres habe ich darauf geachtet, nicht immer neue Objekte zu erstellen. So wird zum Beispiel für die 2. Phase der ChainType im selben Vertex gespeichert.
 
-Für die 2. Phase werden die Knoten in einem Array gesammelt, für die Sweep-Line-Event-Liste.
-In der 2. Phase wird für jedes Dreieck ein `Triangle` Objekt erstellt.
+Ich habe auch darauf geachtet, beim Erstellen der Sweep-Line-Event-Liste `Arrays.sort` statt `Collections.sort` zu benutzen, da die zweite Variante die Liste zuerst in ein Array kopiert und dementsprechend kurzzeitig sehr viel Speicher brauchen kann.
+
+#### Analyse mit VisualVM Speicherverbrauch
+
+Mit VisualVM habe ich diesmal auch den Speicherverbrauch für den Algorithmus gemessen.
+
+![alt text](VisualVM_Messung_1Mio.PNG "Messung")
+
+Wie erwartet benötigt `HalfEdge` am meisten Speicher. Logisch, denn für jede Kante werden 2 Objekte davon erstellt. Bei einem Polygon mit 1 Mio Knoten sind das schon 2Mio. Die zusätzlichen 600k stammen von den eingefügten Verbindungskanten (d.h. es gibt ca. 300 Verbindungskanten). Hier gäbe es sicherlich auch noch Optimierungen, z.B. könnte man das `next` eines Vertex wahrscheinlich weglassen.
+
+Am zweitmeisten benötigt `Triangle`, was nur logisch ist.
+Anzumerken ist hier noch die Klasse `Edge` nur für die Fortschrittsanzeige implementiert wurde, man sollte sie also nicht berücksichtigten.
+

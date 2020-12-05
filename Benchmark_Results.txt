@@ -1,0 +1,172 @@
+WARNING: An illegal reflective access operation has occurred
+WARNING: Illegal reflective access by org.openjdk.jmh.util.Utils (file:/C:/Users/sixkn_000/.m2/repository/org/openjdk/jmh/jmh-core/1.19/jmh-core-1.19.jar) to field java.io.PrintStream.charOut
+WARNING: Please consider reporting this to the maintainers of org.openjdk.jmh.util.Utils
+WARNING: Use --illegal-access=warn to enable warnings of further illegal reflective access operations
+WARNING: All illegal access operations will be denied in a future release
+# JMH version: 1.19
+# VM version: JDK 13.0.2, VM 13.0.2+9
+# VM invoker: Q:\Programme\Java\jdk-13.0.2\bin\java.exe
+# VM options: -Dfile.encoding=UTF-8
+# Warmup: 5 iterations, 1 s each
+# Measurement: 10 iterations, 1 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Average time, time/op
+# Benchmark: net.skeeks.efalg.poly_tria.benchmarks.TriangulationBenchmark.triangulation100_000
+
+# Run progress: 0.00% complete, ETA 00:01:00
+# Fork: 1 of 1
+# Warmup Iteration   1: new polygon
+new polygon
+new polygon
+new polygon
+293.211 ms/op
+# Warmup Iteration   2: 139.777 ms/op
+# Warmup Iteration   3: 136.087 ms/op
+# Warmup Iteration   4: 133.553 ms/op
+# Warmup Iteration   5: 126.213 ms/op
+Iteration   1: 141.549 ms/op
+Iteration   2: 144.771 ms/op
+Iteration   3: 127.062 ms/op
+Iteration   4: 137.193 ms/op
+Iteration   5: 122.466 ms/op
+Iteration   6: 124.070 ms/op
+Iteration   7: 122.395 ms/op
+Iteration   8: 125.568 ms/op
+Iteration   9: 130.150 ms/op
+Iteration  10: 159.626 ms/op
+
+
+Result "net.skeeks.efalg.poly_tria.benchmarks.TriangulationBenchmark.triangulation100_000":
+  133.485 ±(99.9%) 18.432 ms/op [Average]
+  (min, avg, max) = (122.395, 133.485, 159.626), stdev = 12.191
+  CI (99.9%): [115.054, 151.917] (assumes normal distribution)
+
+
+# JMH version: 1.19
+# VM version: JDK 13.0.2, VM 13.0.2+9
+# VM invoker: Q:\Programme\Java\jdk-13.0.2\bin\java.exe
+# VM options: -Dfile.encoding=UTF-8
+# Warmup: 5 iterations, 1 s each
+# Measurement: 10 iterations, 1 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Average time, time/op
+# Benchmark: net.skeeks.efalg.poly_tria.benchmarks.TriangulationBenchmark.triangulation1_000_000
+
+# Run progress: 25.00% complete, ETA 00:00:52
+# Fork: 1 of 1
+# Warmup Iteration   1: new polygon
+new polygon
+new polygon
+new polygon
+3319.027 ms/op
+# Warmup Iteration   2: 2287.485 ms/op
+# Warmup Iteration   3: 2180.312 ms/op
+# Warmup Iteration   4: 2380.457 ms/op
+# Warmup Iteration   5: 2690.557 ms/op
+Iteration   1: 2116.859 ms/op
+Iteration   2: 2353.353 ms/op
+Iteration   3: 2355.143 ms/op
+Iteration   4: 2250.264 ms/op
+Iteration   5: 2314.265 ms/op
+Iteration   6: 2257.051 ms/op
+Iteration   7: 2383.815 ms/op
+Iteration   8: 2714.286 ms/op
+Iteration   9: 2363.193 ms/op
+Iteration  10: 2112.373 ms/op
+
+
+Result "net.skeeks.efalg.poly_tria.benchmarks.TriangulationBenchmark.triangulation1_000_000":
+  2322.060 ±(99.9%) 255.449 ms/op [Average]
+  (min, avg, max) = (2112.373, 2322.060, 2714.286), stdev = 168.964
+  CI (99.9%): [2066.611, 2577.509] (assumes normal distribution)
+
+
+# JMH version: 1.19
+# VM version: JDK 13.0.2, VM 13.0.2+9
+# VM invoker: Q:\Programme\Java\jdk-13.0.2\bin\java.exe
+# VM options: -Dfile.encoding=UTF-8
+# Warmup: 5 iterations, 1 s each
+# Measurement: 10 iterations, 1 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Average time, time/op
+# Benchmark: net.skeeks.efalg.poly_tria.benchmarks.TriangulationBenchmark.triangulation2_000_000
+
+# Run progress: 50.00% complete, ETA 00:00:54
+# Fork: 1 of 1
+# Warmup Iteration   1: new polygon
+new polygon
+new polygon
+new polygon
+5873.018 ms/op
+# Warmup Iteration   2: 5055.148 ms/op
+# Warmup Iteration   3: 5152.162 ms/op
+# Warmup Iteration   4: 5049.063 ms/op
+# Warmup Iteration   5: 5291.867 ms/op
+Iteration   1: 5253.659 ms/op
+Iteration   2: 5007.951 ms/op
+Iteration   3: 4870.742 ms/op
+Iteration   4: 4931.140 ms/op
+Iteration   5: 5234.868 ms/op
+Iteration   6: 5476.424 ms/op
+Iteration   7: 5297.438 ms/op
+Iteration   8: 4968.688 ms/op
+Iteration   9: 4911.325 ms/op
+Iteration  10: 5052.870 ms/op
+
+
+Result "net.skeeks.efalg.poly_tria.benchmarks.TriangulationBenchmark.triangulation2_000_000":
+  5100.510 ±(99.9%) 305.332 ms/op [Average]
+  (min, avg, max) = (4870.742, 5100.510, 5476.424), stdev = 201.958
+  CI (99.9%): [4795.179, 5405.842] (assumes normal distribution)
+
+
+# JMH version: 1.19
+# VM version: JDK 13.0.2, VM 13.0.2+9
+# VM invoker: Q:\Programme\Java\jdk-13.0.2\bin\java.exe
+# VM options: -Dfile.encoding=UTF-8
+# Warmup: 5 iterations, 1 s each
+# Measurement: 10 iterations, 1 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Average time, time/op
+# Benchmark: net.skeeks.efalg.poly_tria.benchmarks.TriangulationBenchmark.triangulation5_000_000
+
+# Run progress: 75.00% complete, ETA 00:00:44
+# Fork: 1 of 1
+# Warmup Iteration   1: new polygon
+new polygon
+new polygon
+new polygon
+15870.761 ms/op
+# Warmup Iteration   2: 14936.655 ms/op
+# Warmup Iteration   3: 14676.340 ms/op
+# Warmup Iteration   4: 15169.847 ms/op
+# Warmup Iteration   5: 15104.046 ms/op
+Iteration   1: 14377.019 ms/op
+Iteration   2: 15067.210 ms/op
+Iteration   3: 14263.424 ms/op
+Iteration   4: 15460.215 ms/op
+Iteration   5: 13804.033 ms/op
+Iteration   6: 14073.097 ms/op
+Iteration   7: 14230.106 ms/op
+Iteration   8: 15608.424 ms/op
+Iteration   9: 14564.128 ms/op
+Iteration  10: 14985.540 ms/op
+
+
+Result "net.skeeks.efalg.poly_tria.benchmarks.TriangulationBenchmark.triangulation5_000_000":
+  14643.319 ±(99.9%) 917.879 ms/op [Average]
+  (min, avg, max) = (13804.033, 14643.319, 15608.424), stdev = 607.120
+  CI (99.9%): [13725.441, 15561.198] (assumes normal distribution)
+
+
+# Run complete. Total time: 00:05:56
+
+Benchmark                                      Mode  Cnt      Score     Error  Units
+TriangulationBenchmark.triangulation100_000    avgt   10    133.485 ±  18.432  ms/op
+TriangulationBenchmark.triangulation1_000_000  avgt   10   2322.060 ± 255.449  ms/op
+TriangulationBenchmark.triangulation2_000_000  avgt   10   5100.510 ± 305.332  ms/op
+TriangulationBenchmark.triangulation5_000_000  avgt   10  14643.319 ± 917.879  ms/op

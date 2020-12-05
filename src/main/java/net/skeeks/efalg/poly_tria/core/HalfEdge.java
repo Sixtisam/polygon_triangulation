@@ -41,9 +41,9 @@ public class HalfEdge {
 	public HalfEdge prev;
 
 	/**
-	 * The face which lays to the left (counter-clockwise order) of this edge.
+	 * Is set to true once this edge has completed 2.phase
 	 */
-	public Face face;
+	public boolean triangulated = false;
 
 	protected HalfEdge() {
 		// for subclass 'search-edge'
@@ -56,6 +56,8 @@ public class HalfEdge {
 		return next.from;
 	}
 
+	protected double cachedXSlope = Double.NaN;
+	
 	double calcXSlope() {
 		// X Steigung
 		Vertex end = to();
@@ -73,12 +75,14 @@ public class HalfEdge {
 	 * is infinitly long in both directions).
 	 */
 	public double calcIntersectionX(int y) {
-		double xSlope = calcXSlope();
-		if (xSlope == Double.POSITIVE_INFINITY) {
+		if(Double.isNaN(cachedXSlope)) {
+			cachedXSlope = calcXSlope();
+		}
+		if (cachedXSlope == Double.POSITIVE_INFINITY) {
 			// not covered by code coverage because an HalfEdge will never join the EdgeSearchTree and therefore the slope will never be calculated
 			return from.x;
 		} else {
-			return from.x + (y - from.y) * xSlope;
+			return from.x + (y - from.y) * cachedXSlope;
 		}
 	}
 

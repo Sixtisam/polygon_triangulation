@@ -26,6 +26,7 @@ public class MakeMonotoneSweepLineStatus {
 	 * Current event index used in initialization
 	 */
 	protected int eventIndex = 0;
+
 	/**
 	 * Initializes the sweep line status for triangulation:
 	 * <li>Build a DCEL for all vertices/edges
@@ -37,13 +38,11 @@ public class MakeMonotoneSweepLineStatus {
 	public int init(Polygon polygon) {
 		int splitOrMergeVerticesCount = 0;
 
-		// A polygon from the input file has initially only 1 face.
-		Face polygonFace = new Face(false);
-		dcel.addFace(polygonFace);
-
-		// Memory Optimization: Use array instead of List because Collections.sort copies its contents and is slow
+		// Memory Optimization: Use array instead of List because Collections.sort
+		// copies its contents and is slow
 		int vertexCount = polygon.length();
-		for(Polygon hole : polygon.holes) vertexCount += hole.length();
+		for (Polygon hole : polygon.holes)
+			vertexCount += hole.length();
 		events = new Vertex[vertexCount];
 
 		HalfEdge prevEdge = null;
@@ -58,14 +57,12 @@ public class MakeMonotoneSweepLineStatus {
 
 			// init edge
 			edge.from = currV;
-			edge.face = polygonFace;
 			edge.next = null; // not known yet
 			edge.prev = prevEdge;
 			edge.twin = twinEdge;
 
 			// init twin edge
 			twinEdge.next = prevTwinEdge;
-			twinEdge.face = null; // outer face which can be ignored for the triangulation algorithm
 			twinEdge.prev = prevTwinEdge;
 			twinEdge.twin = edge;
 
@@ -99,9 +96,6 @@ public class MakeMonotoneSweepLineStatus {
 		firstVertex.edge.prev = lastVertex.edge;
 		firstVertex.edge.twin.next = lastVertex.edge;
 
-		// set edge of polygonFace to an arbitrary edge
-		polygonFace.edge = firstVertex.edge;
-
 		for (int i = 0; i < polygon.holes.size(); i++) {
 			splitOrMergeVerticesCount += initHole(polygon.holes.get(i));
 		}
@@ -111,11 +105,6 @@ public class MakeMonotoneSweepLineStatus {
 	}
 
 	public int initHole(Polygon holePolygon) {
-		Face holeFace = null;
-		Face holePolygonFace = new Face(true); // face of polygon but has to be specially marked
-		// explicitly do not ad the hole polygon face to the faces list in dcel (that is
-		// done later)
-
 		HalfEdge prevEdge = null;
 		HalfEdge prevTwinEdge = null;
 		int splitOrMergeVerticesCount = 0;
@@ -128,14 +117,12 @@ public class MakeMonotoneSweepLineStatus {
 
 			// init edge
 			edge.from = currV;
-			edge.face = holePolygonFace;
 			edge.prev = prevEdge;
 			edge.next = null; // not known yet
 			edge.twin = twinEdge;
 
 			// init twin edge
 			twinEdge.next = prevTwinEdge;
-			twinEdge.face = holeFace; // outer face is the polygon face (hole)
 			twinEdge.prev = prevTwinEdge;
 			twinEdge.twin = edge;
 

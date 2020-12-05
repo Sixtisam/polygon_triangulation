@@ -62,6 +62,7 @@ class TriangulationWithoutHolesTest {
 						new Triangle(new Vertex(365, 78), new Vertex(224, 101), new Vertex(474, 81)),
 						new Triangle(new Vertex(414, 70), new Vertex(474, 81), new Vertex(365, 78)),
 						new Triangle(new Vertex(290, 21), new Vertex(474, 81), new Vertex(414, 70)) });
+
 		test(polygon, triangles);
 	}
 
@@ -79,6 +80,7 @@ class TriangulationWithoutHolesTest {
 						new Triangle(new Vertex(465, 62), new Vertex(413, 108), new Vertex(327, 65)),
 						new Triangle(new Vertex(533, 38), new Vertex(327, 65), new Vertex(465, 62)),
 						new Triangle(new Vertex(213, 32), new Vertex(327, 65), new Vertex(533, 38)) });
+
 		test(polygon, triangles);
 	}
 
@@ -154,11 +156,6 @@ class TriangulationWithoutHolesTest {
 				new Vertex(117, 31), new Vertex(205, 76), new Vertex(214, 107) }));
 		List<Triangle> triangles = Arrays
 				.asList(new Triangle[] { new Triangle(new Vertex(253, 321), new Vertex(317, 241), new Vertex(237, 213)),
-						new Triangle(new Vertex(98, 152), new Vertex(141, 190), new Vertex(243, 173)),
-						new Triangle(new Vertex(98, 152), new Vertex(48, 263), new Vertex(141, 190)),
-						new Triangle(new Vertex(205, 76), new Vertex(93, 112), new Vertex(160, 104)),
-						new Triangle(new Vertex(88, 56), new Vertex(93, 112), new Vertex(205, 76)),
-						new Triangle(new Vertex(117, 31), new Vertex(205, 76), new Vertex(88, 56)),
 						new Triangle(new Vertex(252, 200), new Vertex(317, 241), new Vertex(237, 213)),
 						new Triangle(new Vertex(327, 197), new Vertex(317, 241), new Vertex(252, 200)),
 						new Triangle(new Vertex(327, 197), new Vertex(383, 299), new Vertex(317, 241)),
@@ -168,15 +165,21 @@ class TriangulationWithoutHolesTest {
 						new Triangle(new Vertex(252, 200), new Vertex(138, 291), new Vertex(237, 213)),
 						new Triangle(new Vertex(141, 190), new Vertex(138, 291), new Vertex(252, 200)),
 						new Triangle(new Vertex(243, 173), new Vertex(252, 200), new Vertex(141, 190)),
-						new Triangle(new Vertex(483, 282), new Vertex(403, 186), new Vertex(424, 113)),
 						new Triangle(new Vertex(282, 182), new Vertex(252, 200), new Vertex(327, 197)),
 						new Triangle(new Vertex(239, 140), new Vertex(327, 197), new Vertex(282, 182)),
 						new Triangle(new Vertex(214, 107), new Vertex(327, 197), new Vertex(239, 140)),
 						new Triangle(new Vertex(160, 104), new Vertex(239, 140), new Vertex(214, 107)),
 						new Triangle(new Vertex(205, 76), new Vertex(214, 107), new Vertex(160, 104)),
+						new Triangle(new Vertex(98, 152), new Vertex(141, 190), new Vertex(243, 173)),
+						new Triangle(new Vertex(98, 152), new Vertex(48, 263), new Vertex(141, 190)),
+						new Triangle(new Vertex(483, 282), new Vertex(403, 186), new Vertex(424, 113)),
+						new Triangle(new Vertex(205, 76), new Vertex(93, 112), new Vertex(160, 104)),
+						new Triangle(new Vertex(88, 56), new Vertex(93, 112), new Vertex(205, 76)),
+						new Triangle(new Vertex(117, 31), new Vertex(205, 76), new Vertex(88, 56)),
 						new Triangle(new Vertex(424, 113), new Vertex(617, 193), new Vertex(523, 158)),
 						new Triangle(new Vertex(454, 29), new Vertex(424, 113), new Vertex(223, 71)),
 						new Triangle(new Vertex(454, 29), new Vertex(617, 193), new Vertex(424, 113)) });
+
 		test(polygons, triangles);
 	}
 

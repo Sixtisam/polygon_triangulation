@@ -12,7 +12,11 @@ import java.util.List;
  *
  */
 public class DCEL {
-	public List<Face> faces = new ArrayList<Face>();
+	/**
+	 * contains all added HalfEdge added through phase 1.
+	 * It is needed so we now for which edges we should start phase 2.
+	 */
+	public List<HalfEdge> newConnections = new ArrayList<>();
 
 	public DCEL() {
 	}
@@ -24,9 +28,10 @@ public class DCEL {
 		HalfEdge v2Next = findNextEdge(helperEdge, v2);
 		HalfEdge v2Prev = v2Next.prev;
 
-		Face commonFace = v2Next.face;
-
-		HalfEdge v1Next = findNextEdge(v1, commonFace);
+		// because v is always the vertex currently inspected by the sweep line and the
+		// fact that only MERGE vertex typ add two outgoing edges, we know that v.edge
+		// is always CORRECT.
+		HalfEdge v1Next = v1.edge;
 		HalfEdge v1Prev = v1Next.prev;
 
 		// create new edges
@@ -37,10 +42,8 @@ public class DCEL {
 		newTwinEdge.twin = newEdge;
 
 		newEdge.from = v1;
-		newEdge.face = commonFace;
 		newEdge.prev = v1Prev;
 		newEdge.next = v2Next;
-		commonFace.edge = newEdge;
 
 		v1Prev.next = newEdge;
 		v2Next.prev = newEdge;
@@ -48,64 +51,27 @@ public class DCEL {
 		newTwinEdge.from = v2;
 		newTwinEdge.prev = v2Prev;
 		newTwinEdge.next = v1Next;
-		// face set below
 
 		v2Prev.next = newTwinEdge;
 		v1Next.prev = newTwinEdge;
 
-		// add new face
-		Face newFace = new Face(false);
-		addFace(newFace);
-		newFace.edge = newTwinEdge;
-
-		// set new face on twin edge and other edges in same area
-		HalfEdge curr = newTwinEdge;
-		boolean sameFace = false;
-		do {
-			if (curr == newEdge) {
-				sameFace = true;
-			}
-			curr.face = newFace;
-			curr = curr.next;
-		} while (curr != newTwinEdge);
-
-		if (sameFace) {
-			// we detected that our insertion of the new edge did not partition the polygon
-			// into two faces.
-			// because of this, we completely overwrite 'commonFace' with the new face.
-			faces.remove(commonFace);
-		}
+		newConnections.add(newEdge);
+		newConnections.add(newTwinEdge);
 	}
 
 	public HalfEdge findNextEdge(HalfEdge helperEdge, Vertex v) {
-		HalfEdge curr = helperEdge;
-		while (curr.from != v) {
+		if (helperEdge.from == v) {
+			return helperEdge;
+		}
+		HalfEdge curr = helperEdge.prev;
+
+		while (curr.from != v && curr != helperEdge) {
 			curr = curr.prev;
 		}
-		return curr;
+		if (curr == helperEdge) {
+			throw new RuntimeException("Vertex " + v + " not reachable from edge " + helperEdge);
+		} else {
+			return curr;
+		}
 	}
-
-	/**
-	 * Finds an edge originating from v with face 'commonFace'
-	 */
-	public HalfEdge findNextEdge(Vertex v, Face commonFace) {
-		// because v is always the vertex currently inspected by the sweep line and the fact that only MERGE vertex typ add two outgoing edges, we know that v.edge is always CORRECT.
-		assert v.edge.face == commonFace;
-		return v.edge;
-//		HalfEdge curr = v.edge;
-//		do {
-//			if (curr.face == commonFace) {
-//				return curr;
-//			}
-//			curr = curr.twin.next;
-//		} while (curr != v.edge);
-//
-//		throw new RuntimeException("No edge found for common face " + commonFace);
-	}
-
-	public void addFace(Face face) {
-		assert !face.hole;
-		faces.add(face);
-	}
-
 }

@@ -43,7 +43,8 @@ public class PolygonTriangulation {
 			MakeMonotoneSweepLineStatus sls = new MakeMonotoneSweepLineStatus();
 			// Optimization: if the polygon has no split or merge vertices, we can skip
 			// making the polgony y-monotone because it is already y-monotone.
-			if (sls.init(polygon) > 0) {
+			int splitOrMergeVerticeCount = sls.init(polygon);
+			if (splitOrMergeVerticeCount > 0) {
 				for (Vertex currentEvent : sls.events) {
 					switch (currentEvent.type) {
 					case START:
@@ -65,13 +66,21 @@ public class PolygonTriangulation {
 						throw new RuntimeException("should not happen");
 					}
 				}
+			} else {
+				// only 1 y-monotone polygon to triangulate
+				sls.dcel.newConnections.add(sls.events[0].edge);
 			}
 
 			// -----------------------------------------------------
 			// 2. Triangulate those y-monotone polygons
 			// -----------------------------------------------------
-			for (int j = 0; j < sls.dcel.faces.size(); j++) {
-				triangulateMonotonePolygon(sls.dcel.faces.get(j), triangles);
+			for (int j = 0; j < sls.dcel.newConnections.size(); j++) {
+				HalfEdge startEdge = sls.dcel.newConnections.get(j);
+				// it may happen that the edge is already triangulated. this is for example the case when a polygon has a hole. 
+				// The hole creates at least one new connection, but the polygon may be still only one single "area"
+				if(!startEdge.triangulated) {
+					triangulateMonotonePolygon(startEdge, triangles);
+				}
 			}
 		}
 		return triangles;
@@ -174,19 +183,7 @@ public class PolygonTriangulation {
 	}
 
 	public static void insertConnection(Vertex event, HalfEdge toTheLeft, MakeMonotoneSweepLineStatus sls) {
-		if (event.edge.face.hole) {
-			// will only be true for the uppermost vertex of any holes.
-			// this code will set the face of the hole (outer edges)
-			Face newFace = toTheLeft.face; // the edges of the hole will be associated with the face of the edge to the
-											// left
-			assert !newFace.hole;
-			HalfEdge curr = event.edge; // twin edge is in the polygon, normal edge would be inside
-			do {
-				curr.face = newFace;
-				curr = curr.next;
-			} while (curr != event.edge);
-
-		}
+		// TODO ske check there is some special handling needed for the first hole vertex.
 		sls.dcel.insertEdge(event, toTheLeft);
 		// progress visualization
 		PROGRESS_EDGES.add(new Edge(event, toTheLeft.helper));
@@ -218,8 +215,8 @@ public class PolygonTriangulation {
 	/**
 	 * Triangulates a y-monotone polygon
 	 */
-	public static void triangulateMonotonePolygon(Face face, List<Triangle> triangles) {
-		Vertex[] vertices = getYMonotoneVertices(face);
+	public static void triangulateMonotonePolygon(HalfEdge startEdge, List<Triangle> triangles) {
+		Vertex[] vertices = getYMonotoneVertices(startEdge);
 		assert vertices.length >= 3;
 		if (vertices.length == 3) {
 			triangles.add(new Triangle(vertices[0], vertices[1], vertices[2]));
@@ -291,7 +288,7 @@ public class PolygonTriangulation {
 	 * Returns an array of vertices of the passed face.
 	 * Also prepares the vertex for the 2. algorithm phase
 	 */
-	public static Vertex[] getYMonotoneVertices(Face face) {
+	public static Vertex[] getYMonotoneVertices(HalfEdge startEdge) {
 		ArrayList<Vertex> tmpVertices = new ArrayList<>();
 
 		// First, search the highest vertex
@@ -300,7 +297,7 @@ public class PolygonTriangulation {
 		// First, create a doubly connected list (since the 'twin' half edges now form
 		// other faces we cannot use them, but we need them)
 		{
-			HalfEdge currEdge = face.edge;
+			HalfEdge currEdge = startEdge;
 			do {
 				Vertex v = currEdge.from;
 				tmpVertices.add(v);
@@ -308,8 +305,10 @@ public class PolygonTriangulation {
 					max = v;
 					maxEdge = currEdge;
 				}
+				// its not triangulated yet but it will be for sure triangulated in the following code
+				currEdge.triangulated = true;
 				currEdge = currEdge.next;
-			} while (currEdge != face.edge);
+			} while (currEdge != startEdge);
 		}
 
 		// list that will be returned

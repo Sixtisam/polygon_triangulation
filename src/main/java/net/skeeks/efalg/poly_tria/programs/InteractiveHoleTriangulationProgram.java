@@ -40,14 +40,14 @@ public class InteractiveHoleTriangulationProgram {
 				List<Triangle> triangles = PolygonTriangulation.triangulate(polygons, holes);
 
 				painter.setPolygons(polygons.toArray(new Polygon[0]), holes.toArray(new Polygon[0]));
-				painter.setTriangels(triangles);
+				painter.setTriangles(triangles);
 				System.out.println(
 						"----------------------------------------------------------------------------------------");
 				printJavaTestcase(polygons, holes, triangles);
 			} catch (Throwable t) {
 				t.printStackTrace();
 				painter.setPolygons(polygons.toArray(new Polygon[0]), holes.toArray(new Polygon[0]));
-				painter.setTriangels(Collections.emptyList());
+				painter.setTriangles(Collections.emptyList());
 				painter.setHelpText("Errror " + painter.getHelpText());
 			}
 		};
@@ -134,7 +134,7 @@ public class InteractiveHoleTriangulationProgram {
 
 	}
 
-	static void printTriangles(List<Triangle> triangles) {
+	public static void printTriangles(List<Triangle> triangles) {
 		System.out.println("List<Triangle> triangles = Arrays.asList(new Triangle[]{");
 		System.out.println(triangles.stream()
 				.map(triangle -> "new Triangle(new Vertex(" + triangle.p1.x + ", " + triangle.p1.y + "), new Vertex("

@@ -65,7 +65,7 @@ public class PolygonTriangulationProgram {
 		System.out.println("Triangulation took " + ((System.nanoTime() - start) / 1_000_000) + "ms");
 		// Show visualization
 		painter.setPolygons(polygons.toArray(new Polygon[0]), holes.toArray(new Polygon[0]));
-		painter.setTriangels(triangles);
+		painter.setTriangles(triangles);
 		painter.setPoints(polygons.stream().filter(Objects::nonNull).flatMap(polygon -> Arrays.stream(polygon.vertices))
 				.toArray(x -> new Vertex[x]));
 		} catch(Throwable e) {

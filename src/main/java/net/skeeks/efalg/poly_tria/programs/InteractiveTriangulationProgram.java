@@ -26,7 +26,7 @@ public class InteractiveTriangulationProgram {
 			try {
 				List<Triangle> triangles = PolygonTriangulation.triangulate(Collections.singletonList(p),
 						Collections.emptyList());
-				painter.setTriangels(triangles);
+				painter.setTriangles(triangles);
 				painter.setPolygons(new Polygon[0], new Polygon[0]);
 				painter.setHelpText("Success");
 				
@@ -35,7 +35,7 @@ public class InteractiveTriangulationProgram {
 			} catch (Throwable t) {
 				t.printStackTrace();
 				painter.setPolygons(new Polygon[] { p }, new Polygon[0]);
-				painter.setTriangels(Collections.emptyList());
+				painter.setTriangles(Collections.emptyList());
 				painter.setHelpText("Error occurred");
 			}
 		};
